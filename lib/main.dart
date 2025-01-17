@@ -42,7 +42,7 @@ class _WrapperState extends State<Wrapper> {
   @override
   Widget build(BuildContext context) {
     if (isFirstTime == null) {
-      return const CircularProgressIndicator(); // Show a loading indicator while preferences are being loaded
+      return const CircularProgressIndicator(); 
     } else if (isFirstTime == true) {
       return const OnboardingScreen();
     } else {

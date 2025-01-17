@@ -2,11 +2,28 @@ import 'package:first_app/screens/forgot_screen.dart';
 import 'package:first_app/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:first_app/data/models/user_model.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.clear();
+    passwordController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +98,19 @@ class LoginScreen extends StatelessWidget {
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
                     ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
-                  obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
@@ -152,10 +180,32 @@ class LoginScreen extends StatelessWidget {
 
   void loginUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+      try {
+        SharedPreferences pref = await SharedPreferences.getInstance();
+        String? userData = pref.getString("userData");
+        if (userData != null) {
+          User user = User.fromJson(jsonDecode(userData));
+          if (user.email == emailController.text && user.password == passwordController.text) {
+            await pref.setBool("isLogin", true);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Invalid email or password')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('No user found. Please sign up first.')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred. Please try again.')),
+        );
+      }
     }
   }
 }

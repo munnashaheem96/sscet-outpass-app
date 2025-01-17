@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:first_app/screens/reset_screen.dart';
 
 class ForgotScreen extends StatefulWidget {
@@ -8,12 +10,28 @@ class ForgotScreen extends StatefulWidget {
 
 class _ForgotScreenState extends State<ForgotScreen> {
   final TextEditingController emailController = TextEditingController();
-
   final TextEditingController phoneController = TextEditingController();
-
-  final TextEditingController passwordController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
+  late SharedPreferences pref;
+  String errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    initPreferences();
+  }
+
+  Future<void> initPreferences() async {
+    pref = await SharedPreferences.getInstance();
+  }
+
+  bool validateUser(String email, String phone) {
+    final String? userData = pref.getString("userData");
+    if (userData == null) return false;
+
+    final Map<String, dynamic> user = jsonDecode(userData);
+    return user['email'] == email && user['phone'] == phone;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,17 +78,17 @@ class _ForgotScreenState extends State<ForgotScreen> {
                     ),
                   ),
                   validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-                          if (!emailRegex.hasMatch(value)) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
                 ),
-                SizedBox(height: 20,),
+                SizedBox(height: 20),
                 TextFormField(
                   controller: phoneController,
                   decoration: InputDecoration(
@@ -90,26 +108,44 @@ class _ForgotScreenState extends State<ForgotScreen> {
                     ),
                   ),
                   validator: (value) {
-                          if (value == null || value.isEmpty){
-                            return 'Enter Phone Number';
-                          }
-                          if (value.length !=10 || !RegExp(r'^\d+$').hasMatch(value)){
-                            return 'Enter valid 10 digit Phone Number';
-                          }
-                          return null;
-                        },
+                    if (value == null || value.isEmpty) {
+                      return 'Enter Phone Number';
+                    }
+                    if (value.length != 10 || !RegExp(r'^\d+$').hasMatch(value)) {
+                      return 'Enter a valid 10-digit Phone Number';
+                    }
+                    return null;
+                  },
                 ),
-                SizedBox(height: 20,),
+                SizedBox(height: 20),
+                if (errorMessage.isNotEmpty)
+                  Text(
+                    errorMessage,
+                    style: TextStyle(color: Colors.red, fontSize: 16),
+                  ),
+                SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromARGB(255, 255, 115, 92),
                   ),
-                  onPressed: (){
-                    if(_formKey.currentState!.validate()){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ResetScreen()),
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      var onValue = await validateUser(
+                        emailController.text,
+                        phoneController.text,
                       );
+
+                      if (onValue) {
+                        if (mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => ResetScreen()),
+                          );
+                        }
+                      } else {
+                        setState(() {
+                          errorMessage = 'User Not Found';
+                        });
+                      }
                     }
                   },
                   child: Text(

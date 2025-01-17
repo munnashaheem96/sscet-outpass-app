@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:first_app/screens/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ResetScreen extends StatefulWidget {
   @override
@@ -13,6 +15,40 @@ class _ResetScreenState extends State<ResetScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  late SharedPreferences pref;
+
+  @override
+  void initState() {
+    super.initState();
+    initPreferences();
+  }
+
+  void initPreferences() async {
+    pref = await SharedPreferences.getInstance();
+  }
+
+  void updatePassword() async {
+    final userDataString = pref.getString("userData");
+    if (userDataString != null) {
+      Map<String, dynamic> userData = jsonDecode(userDataString);
+
+      userData['password'] = passwordController.text;
+
+      await pref.setString("userData", jsonEncode(userData));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password updated successfully')),
+      );
+      
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No user found. Please sign up first.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,17 +63,17 @@ class _ResetScreenState extends State<ResetScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                    'assets/images/reset.png',
-                    height: 200,
-                    width: 200,
-                  ),
+                  'assets/images/reset.jpg',
+                  height: 200,
+                  width: 200,
+                ),
                 SizedBox(height: 20),
                 Text(
-                    'RESET PASSWORD',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  'RESET PASSWORD',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 20),
                 TextFormField(
@@ -87,9 +123,7 @@ class _ResetScreenState extends State<ResetScreen> {
                     labelStyle: TextStyle(color: Colors.black),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                        _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() {
@@ -123,22 +157,19 @@ class _ResetScreenState extends State<ResetScreen> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 255, 115, 92),
-                    ),
-                    onPressed: (){
-                      if(_formKey.currentState!.validate()){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginScreen()),
-                        );
-                      }
-                    },
-                    child: Text(
-                      ' Confirm Reset Password',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 255, 115, 92),
                   ),
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      updatePassword();
+                    }
+                  },
+                  child: Text(
+                    ' Confirm Reset Password',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
               ],
             ),
           ),

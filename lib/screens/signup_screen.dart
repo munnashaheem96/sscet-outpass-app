@@ -264,12 +264,27 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: () {
-                          if(_formKey.currentState!.validate()){
-                          Navigator.push(
-                            context, MaterialPageRoute(builder: (context) =>LoginScreen(),),);
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            final User user = User(
+                              firstName: firstnameController.text,
+                              lastName: lastnameController.text,
+                              email: emailController.text,
+                              phone: phoneController.text,
+                              password: passwordController.text,
+                            );
+
+                            String jsonString = jsonEncode(user);
+                            pref = await SharedPreferences.getInstance();
+                            await pref.setString("userData", jsonString);
+                            await pref.setBool("isLogin", true);
+
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => LoginScreen()),
+                            );
                           }
-                        },                               // this need to navigate to login
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color.fromARGB(255, 255, 115, 92),
                           minimumSize: Size(300, 50),
@@ -289,23 +304,6 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
-  void SignupScreen() async{
-
-    final User user = User (
-      firstName: firstnameController.text,
-      lastName: lastnameController.text,
-      email: emailController.text,
-      phone:phoneController.text,
-      password: passwordController.text
-    );
-
-  String jsonString = jsonEncode(user);
-  pref.setString("userData", jsonString);
-  pref.setBool("isLogin", true);
-    
-    Navigator.pushReplacement(context,
-      MaterialPageRoute(builder: (BuildContext context) => HomeScreen())
-    );}
 
 void initPreferences() async {
   pref = await SharedPreferences.getInstance();
