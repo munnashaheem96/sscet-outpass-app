@@ -1,10 +1,14 @@
-import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_app/data/models/user_model.dart';
+import 'package:first_app/screens/Attendance/Student/attendance_student.dart';
+import 'package:first_app/screens/Outpass/ClassAdvisor/ca_approvel_page.dart';
+import 'package:first_app/screens/Outpass/HOD/hod_approvel_page.dart';
+import 'package:first_app/screens/Outpass/Principal/p_approvel_page.dart';
+import 'package:first_app/screens/Outpass/Security/security_scan_page.dart';
+import 'package:first_app/screens/Login/login_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../main.dart';
-import 'Courses/course_screen.dart';
-import '../../data/course_data.dart';
+import 'Outpass/outpass_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,13 +18,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late SharedPreferences pref;
-  User? user;
+  UserModel? user; // Use your custom User model.
+  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
 
   @override
   void initState() {
-    initPreferences();
     super.initState();
+    fetchUserData();
   }
 
   @override
@@ -29,34 +33,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(20)),
-          child: BottomNavigationBar(
-            items: <BottomNavigationBarItem>[
-              const BottomNavigationBarItem(
-                backgroundColor: Color.fromRGBO(102, 73, 239, 1),
-                icon: Icon(Icons.home),
-                label: 'Home',
+      bottomNavigationBar: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(20)),
+        child: BottomNavigationBar(
+          items: <BottomNavigationBarItem>[
+            const BottomNavigationBarItem(
+              backgroundColor: Color.fromRGBO(102, 73, 239, 1),
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.business),
+              label: 'Business',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.school),
+              label: 'School',
+            ),
+            BottomNavigationBarItem(
+              icon: IconButton(
+                icon: const Icon(Icons.logout_rounded),
+                onPressed: logout,
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.business),
-                label: 'Business',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.school),
-                label: 'School',
-              ),
-              BottomNavigationBarItem(
-                icon: IconButton(
-                  icon: const Icon(Icons.logout_rounded),
-                  onPressed: logout,
-                 ),
-                label: 'Logout',
-              ),
-            ],
-          ),
+              label: 'Logout',
+            ),
+          ],
         ),
       ),
       body: user != null
@@ -68,7 +69,350 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 20),
                   _buildCategories(),
                   const SizedBox(height: 20),
-                  _buildCourseSection(),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Services',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          'See All',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        user?.role == 'Student'
+                            ? Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => OutpassScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Color.fromRGBO(102, 73, 239, 0.1),
+                                          ),
+                                          width: 190,
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Image(
+                                                image: AssetImage('assets/images/outpass.png'),
+                                                height: 120,
+                                                width: 120,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Out Pass',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 10,),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => AttendanceStudent(),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Color.fromRGBO(102, 73, 239, 0.1),
+                                          ),
+                                          width: 190,
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Image(
+                                                image: AssetImage('assets/images/outpass.png'),
+                                                height: 120,
+                                                width: 120,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Attendance',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                  ],
+                                ),
+                                SizedBox(height: 16,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => OutpassScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Color.fromRGBO(102, 73, 239, 0.1),
+                                          ),
+                                          width: 190,
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Image(
+                                                image: AssetImage('assets/images/outpass.png'),
+                                                height: 120,
+                                                width: 120,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Announcemnets',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 10,),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => OutpassScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Color.fromRGBO(102, 73, 239, 0.1),
+                                          ),
+                                          width: 190,
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Image(
+                                                image: AssetImage('assets/images/outpass.png'),
+                                                height: 120,
+                                                width: 120,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Time Table',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                  ],
+                                ),
+                              ],
+                            )
+                            : user?.role == 'Class Advisor'
+                                ? GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ClassAdvisorApprovalScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.blue[200],
+                                      ),
+                                      width: 190,
+                                      height: 250,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Image(
+                                            image: AssetImage('assets/images/outpass.png'),
+                                            height: 120,
+                                            width: 120,
+                                          ),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            'Review Outpasses',
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : user?.role == 'HOD'
+                                    ? GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => HODApprovalScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Colors.blue[200],
+                                          ),
+                                          width: 190,
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Image(
+                                                image: AssetImage('assets/images/outpass.png'),
+                                                height: 120,
+                                                width: 120,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Review Outpasses',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    : user?.role == 'Principal'
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => PrincipalApprovalScreen(),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: Colors.blue[200],
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  Image(
+                                                    image: AssetImage('assets/images/outpass.png'),
+                                                    height: 120,
+                                                    width: 120,
+                                                  ),
+                                                  SizedBox(height: 5),
+                                                  Text(
+                                                    'Review Outpasses',
+                                                    style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        : user?.role == 'Security'
+                                            ? GestureDetector(
+                                                onTap: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => SecurityScanPage(),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    color: Colors.blue[200],
+                                                  ),
+                                                  width: 190,
+                                                  height: 250,
+                                                  child: Column(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      Image(
+                                                        image: AssetImage('assets/images/outpass.png'),
+                                                        height: 120,
+                                                        width: 120,
+                                                      ),
+                                                      SizedBox(height: 5),
+                                                      Text(
+                                                        'Review Outpasses',
+                                                        style: TextStyle(
+                                                            fontSize: 20,
+                                                            fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              )
+                                            : Container(), // Default if the role is not found.
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16)
                 ],
               ),
             )
@@ -99,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                "Hi, ${user!.lastName}",
+                "Hi, ${user?.firstName ?? ''} ${user?.lastName ?? ''}",
                 style: const TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -152,157 +496,62 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
-
   List<Widget> _buildCategoryItems(List<Map<String, dynamic>> items) {
-    return items.map((item) {
-      return Column(
-        children: [
-          Container(
-            height: 80,
-            width: 80,
-            decoration: BoxDecoration(
-              color: item['color'],
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Icon(item['icon'], color: Colors.white, size: 35),
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            item['text'],
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
-    }).toList();
-  }
-
-  Widget _buildCourseSection() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                "Courses",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                "See All",
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Column(
-            children: _buildCourseCards(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildCourseCards() {
-    List<Widget> rows = [];
-    for (int i = 0; i < courses.length; i += 2) {
-      rows.add(
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return items.map((item) {
+        return Column(
           children: [
-            _buildCourseCard(courses[i]),
-            if (i + 1 < courses.length) const SizedBox(width: 10),
-            if (i + 1 < courses.length) _buildCourseCard(courses[i + 1]),
-          ],
-        ),
-      );
-      rows.add(const SizedBox(height: 10));
-    }
-    return rows;
-  }
-
-  Widget _buildCourseCard(Map<String, dynamic> course) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CourseScreen(
-              courseName: course['name'],
-              videoPath: course['videoPath'],
-              description: course['description'],
-            ),
-          ),
-        );
-      },
-      child: Container(
-        height: 250,
-        width: 180,
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 1,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          color: const Color.fromARGB(255, 245, 243, 255),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(course['imagePath'], height: 100),
-            const SizedBox(height: 20),
-            Text(
-              course['name'],
-              style: const TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 54, 54, 54),
+            Container(
+              height: 80,
+              width: 80,
+              decoration: BoxDecoration(
+                color: item['color'],
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(item['icon'], color: Colors.white, size: 35),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             Text(
-              "${course['videoCount']} Videos",
+              item['text'],
               style: const TextStyle(
+                color: Colors.black,
                 fontSize: 15,
-                color: Color.fromARGB(255, 110, 110, 110),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
+        );
+      }).toList();
+    }
 
-  void initPreferences() async {
-    pref = await SharedPreferences.getInstance();
-    setState(() {
-      user = User.fromJson(jsonDecode(pref.getString("userData")!));
-    });
+  void fetchUserData() async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+
+        if (userDoc.exists) {
+          setState(() {
+            user = UserModel.fromJson(userDoc.data()!); // Use your custom model.
+          });
+        } else {
+          print("User document does not exist.");
+        }
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
   }
 
   void logout() async {
-    pref.setBool("isLogin", false);
+    await _auth.signOut();
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const Wrapper()),
+      MaterialPageRoute(builder: (context) => LoginScreen()), // Use appropriate screen.
     );
   }
 }

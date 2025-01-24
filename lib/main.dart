@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/Login/onboarding_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/Login/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensures that binding is initialized before async operations.
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const FirstApp());
 }
 
@@ -42,11 +50,11 @@ class _WrapperState extends State<Wrapper> {
   @override
   Widget build(BuildContext context) {
     if (isFirstTime == null) {
-      return const CircularProgressIndicator(); 
+      return const Center(child: CircularProgressIndicator()); 
     } else if (isFirstTime == true) {
       return const OnboardingScreen();
     } else {
-      return isLoggedIn == true ? const HomeScreen() : LoginScreen();
+      return isLoggedIn == true ? HomeScreen() : LoginScreen();
     }
   }
 
