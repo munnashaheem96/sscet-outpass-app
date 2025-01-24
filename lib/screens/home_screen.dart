@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_app/data/models/user_model.dart';
-import 'package:first_app/screens/Attendance/Student/attendance_student.dart';
+import 'package:first_app/screens/Outpass/ClassAdvisor/archieved_class.dart';
 import 'package:first_app/screens/Outpass/ClassAdvisor/ca_approvel_page.dart';
 import 'package:first_app/screens/Outpass/HOD/hod_approvel_page.dart';
 import 'package:first_app/screens/Outpass/Principal/p_approvel_page.dart';
 import 'package:first_app/screens/Outpass/Security/security_scan_page.dart';
 import 'package:first_app/screens/Login/login_screen.dart';
+import 'package:first_app/screens/Outpass/Student/archived_op.dart';
 import 'package:flutter/material.dart';
 import 'Outpass/outpass_screen.dart';
 
@@ -98,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // Check user role and display appropriate container
                         user?.role == 'Student'
                             ? Column(
                               children: [
@@ -146,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => AttendanceStudent(),
+                                              builder: (context) => OutpassScreen(),
                                             ),
                                           );
                                         },
@@ -168,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                               SizedBox(height: 5),
                                               Text(
-                                                'Attendance',
+                                                'Assignments',
                                                 style: TextStyle(
                                                     fontSize: 20,
                                                     fontWeight: FontWeight.bold),
@@ -261,42 +263,83 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             )
                             : user?.role == 'Class Advisor'
-                                ? GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ClassAdvisorApprovalScreen(),
+                                ? Row(
+                                  children: [
+                                    GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ClassAdvisorApprovalScreen(),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Color.fromRGBO(102, 73, 239, 0.1),
+                                          ),
+                                          width: 190,
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Image(
+                                                image: AssetImage('assets/images/outpass.png'),
+                                                height: 120,
+                                                width: 120,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Review Outpasses',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      );
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Colors.blue[200],
                                       ),
-                                      width: 190,
-                                      height: 250,
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Image(
-                                            image: AssetImage('assets/images/outpass.png'),
-                                            height: 120,
-                                            width: 120,
+                                      SizedBox(width: 10,),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ArchivedClass(),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Color.fromRGBO(102, 73, 239, 0.1),
                                           ),
-                                          SizedBox(height: 5),
-                                          Text(
-                                            'Review Outpasses',
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold),
+                                          width: 190,
+                                          height: 250,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Image(
+                                                image: AssetImage('assets/images/outpass.png'),
+                                                height: 120,
+                                                width: 120,
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Archived Outpasses',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  )
+                                  ],
+                                )
                                 : user?.role == 'HOD'
                                     ? GestureDetector(
                                         onTap: () {
@@ -526,26 +569,35 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
   void fetchUserData() async {
-    try {
-      final currentUser = _auth.currentUser;
-      if (currentUser != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(currentUser.uid)
-            .get();
+  try {
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
 
-        if (userDoc.exists) {
-          setState(() {
-            user = UserModel.fromJson(userDoc.data()!); // Use your custom model.
-          });
-        } else {
-          print("User document does not exist.");
-        }
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+
+        setState(() {
+          user = UserModel(
+            id: userDoc.id, // Ensure the document ID is passed correctly
+            firstName: userData['firstName'] ?? '',
+            lastName: userData['lastName'] ?? '',
+            email: userData['email'] ?? '',
+            role: userData['role'] ?? '',
+            sin: userData['sin'],
+            year: userData['year'],
+            department: userData['department'],
+          );
+        });
+      } else {
+        print("User document does not exist.");
       }
-    } catch (e) {
-      print("Error fetching user data: $e");
     }
+  } catch (e) {
+    print("Error fetching user data: $e");
   }
+}
+
 
   void logout() async {
     await _auth.signOut();
