@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/Login/onboarding_screen.dart';
 import 'screens/home_screen.dart';
@@ -22,8 +23,11 @@ class FirstApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'First App',
+      title: 'SSCET APP',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        textTheme: GoogleFonts.poppinsTextTheme(), // Set Poppins as the default text theme
+      ),
       home: const Wrapper(),
     );
   }
@@ -43,8 +47,8 @@ class _WrapperState extends State<Wrapper> {
 
   @override
   void initState() {
-    initPreferences();
     super.initState();
+    initPreferences();
   }
 
   @override
@@ -54,7 +58,7 @@ class _WrapperState extends State<Wrapper> {
     } else if (isFirstTime == true) {
       return const OnboardingScreen();
     } else {
-      return isLoggedIn == true ? HomeScreen() : LoginScreen();
+      return isLoggedIn == true ? const HomeScreen() :  LoginScreen();
     }
   }
 
@@ -65,7 +69,7 @@ class _WrapperState extends State<Wrapper> {
       if (isFirstTime == true) {
         pref.setBool("isFirstTime", false);
       }
-      isLoggedIn = pref.getBool("isLogin");
+      isLoggedIn = pref.getBool("isLogin") ?? false; // Default to false if not set
     });
   }
 }
