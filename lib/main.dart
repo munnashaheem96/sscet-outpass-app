@@ -8,7 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensures that binding is initialized before async operations.
+  WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -26,7 +26,7 @@ class FirstApp extends StatelessWidget {
       title: 'SSCET APP',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(), // Set Poppins as the default text theme
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       home: const Wrapper(),
     );
@@ -69,7 +69,7 @@ class _WrapperState extends State<Wrapper> {
       if (isFirstTime == true) {
         pref.setBool("isFirstTime", false);
       }
-      isLoggedIn = pref.getBool("isLogin") ?? false; // Default to false if not set
+      isLoggedIn = pref.getBool("isLogin") ?? false;
     });
   }
 }
