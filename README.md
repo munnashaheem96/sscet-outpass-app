@@ -1,1 +1,1 @@
- <img width='210' src="https://github.com/munnashaheem96/sscet-app/blob/main/assets/images/screenshot.jpeg"/> 
+ <img width='210' src="https://github.com/munnashaheem96/sscet-outpass-app/blob/main/assets/images/screenshot.jpeg"/> 
