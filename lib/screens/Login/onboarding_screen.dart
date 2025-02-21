@@ -12,19 +12,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: const Color(0xFF191919),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/onboarding.png'),
-            SizedBox(height: 30,),
+            Image.asset(
+              'assets/images/onboarding.png',
+              width: 200,
+            ),
+            SizedBox(height: 60,),
             Text(
               'Welcome to SSCET App!',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: const Color.fromARGB(255, 255, 255, 255),
               ),
             ),
             const SizedBox(height: 20),

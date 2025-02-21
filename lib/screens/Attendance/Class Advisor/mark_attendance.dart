@@ -1,126 +1,305 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:first_app/screens/Attendance/Class%20Advisor/confirmation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class MarkAttendance extends StatefulWidget {
-  final String year;
-  final String department;
-
-  MarkAttendance({required this.year, required this.department});
-
+class AttendanceMarkingPage extends StatefulWidget {
   @override
-  _MarkAttendanceState createState() => _MarkAttendanceState();
+  _AttendanceMarkingPageState createState() => _AttendanceMarkingPageState();
 }
 
-class _MarkAttendanceState extends State<MarkAttendance> {
+class _AttendanceMarkingPageState extends State<AttendanceMarkingPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<Map<String, dynamic>> students = [];
-  Map<String, bool> attendance = {};
+  String? _dayType; // 'Holiday' or 'Working Day'
+  List<String> dayTypes = ['Working Day', 'Holiday'];
+  String? _selectedDate;
+  List<Map<String, dynamic>> _students = [];
+  Map<String, bool> _attendanceStatus = {};
+  bool _isFinalized = false;
 
   @override
   void initState() {
     super.initState();
+    _selectedDate = DateFormat('dd-mm-yyyy').format(DateTime.now());
     _fetchStudents();
   }
 
-  Future<void> _fetchStudents() async {
-    try {
-      // Fetch students from the `users` collection based on year and department.
-      QuerySnapshot querySnapshot = await _firestore
-          .collection('users')
-          .where('role', isEqualTo: 'Student')
-          .where('year', isEqualTo: widget.year)
-          .where('department', isEqualTo: widget.department)
+Future<void> _fetchStudents() async {
+  final currentUser = _auth.currentUser;
+  if (currentUser != null) {
+    final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+    final userData = userDoc.data() as Map<String, dynamic>;
+    final String? year = userData['year'];
+    final String? department = userData['department'];
+
+    if (year != null && department != null) {
+      // Check if the day is a holiday
+      final holidayDoc = await _firestore
+          .collection('attendance')
+          .doc('$year-$department')
+          .collection(_selectedDate!)
+          .doc('holiday')
+          .get();
+
+      if (holidayDoc.exists && holidayDoc.data()?['dayType'] == 'Holiday') {
+        setState(() {
+          _isFinalized = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Today is a holiday. Attendance is not required.')),
+        );
+        return;
+      }
+
+      // Check if attendance is already finalized
+      final attendanceDoc = await _firestore
+          .collection('attendance')
+          .doc('$year-$department')
+          .collection(_selectedDate!)
+          .doc('finalized')
           .get();
 
       setState(() {
-        students = querySnapshot.docs.map((doc) {
-          return {'rollNo': doc.id, 'name': doc['firstName'] + ' ' + doc['lastName']};
-        }).toList();
-
-        // Initialize attendance map
-        for (var student in students) {
-          attendance[student['rollNo']] = false;
-        }
+        _isFinalized = attendanceDoc.exists && attendanceDoc.data()?['finalized'] == true;
       });
-    } catch (e) {
-      print('Error fetching students: $e');
-    }
-  }
 
-  Future<void> _saveAttendance() async {
-    try {
-      final date = DateTime.now();
-      final formattedDate = '${date.year}-${date.month}-${date.day}';
-
-      for (var entry in attendance.entries) {
-        final rollNo = entry.key;
-        final isPresent = entry.value;
-
-        DocumentReference studentDoc = _firestore.collection('attendance').doc(rollNo);
-
-        await _firestore.runTransaction((transaction) async {
-          final snapshot = await transaction.get(studentDoc);
-
-          if (!snapshot.exists) {
-            // Create a new attendance record if it doesn't exist.
-            transaction.set(studentDoc, {
-              'rollNo': rollNo,
-              'attendance': {formattedDate: isPresent ? 'Present' : 'Absent'},
-              'totalPresentDays': isPresent ? 1 : 0,
-              'totalDays': 1,
-            });
-          } else {
-            // Update existing attendance record.
-            final data = snapshot.data() as Map<String, dynamic>;
-            final attendanceMap = Map<String, String>.from(data['attendance']);
-            attendanceMap[formattedDate] = isPresent ? 'Present' : 'Absent';
-
-            transaction.update(studentDoc, {
-              'attendance': attendanceMap,
-              'totalPresentDays': data['totalPresentDays'] + (isPresent ? 1 : 0),
-              'totalDays': data['totalDays'] + 1,
-            });
-          }
-        });
+      if (_isFinalized) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Attendance is already finalized and cannot be edited.')),
+        );
+        return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Attendance saved successfully!')));
-    } catch (e) {
-      print('Error saving attendance: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving attendance: $e')));
+      // Fetch students if attendance is not finalized
+      final QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .where('year', isEqualTo: year)
+          .where('department', isEqualTo: department)
+          .where('role', isEqualTo: 'Student')
+          .get();
+
+      setState(() {
+        _students = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {
+            'id': doc.id,
+            'name': '${data['firstName']} ${data['lastName']}',
+            'sin': data['sin'],
+          };
+        }).toList();
+
+        _attendanceStatus = {
+          for (var student in _students) student['id']: false,
+        };
+      });
     }
   }
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Mark Attendance (${widget.year}, ${widget.department})'),
-      ),
-      body: students.isEmpty
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: students.length,
-              itemBuilder: (context, index) {
-                final student = students[index];
-                return ListTile(
-                  title: Text(student['name']),
-                  subtitle: Text(student['rollNo']),
-                  trailing: Checkbox(
-                    value: attendance[student['rollNo']],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        attendance[student['rollNo']] = value!;
-                      });
-                    },
-                  ),
+Future<void> _markAttendance() async {
+  final currentUser = _auth.currentUser;
+  if (currentUser != null) {
+    final userDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+    final userData = userDoc.data() as Map<String, dynamic>;
+    final String? year = userData['year'];
+    final String? department = userData['department'];
+
+    if (year != null && department != null) {
+      // If the day is a holiday, skip attendance marking
+      if (_dayType == 'Holiday') {
+        final batch = _firestore.batch();
+
+        // Mark the day as a holiday
+        final holidayRef = _firestore
+            .collection('attendance')
+            .doc('$year-$department')
+            .collection(_selectedDate!)
+            .doc('holiday');
+
+        batch.set(holidayRef, {
+          'dayType': 'Holiday',
+          'date': _selectedDate,
+          'finalized': true, // Mark as finalized
+        });
+
+        await batch.commit();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Day marked as a holiday!')),
+        );
+        return;
+      }
+
+      // If the day is a working day, proceed with attendance marking
+      final absentStudents = _students
+          .where((student) => !(_attendanceStatus[student['id']] ?? false))
+          .toList();
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AttendanceConfirmationPage(
+            absentStudents: absentStudents,
+            onConfirm: () async {
+              final batch = _firestore.batch();
+
+              for (var student in _students) {
+                final studentId = student['id'];
+                final isPresent = _attendanceStatus[studentId] ?? false;
+
+                final attendanceRef = _firestore
+                    .collection('attendance')
+                    .doc('$year-$department')
+                    .collection(_selectedDate!)
+                    .doc(studentId);
+
+                batch.set(attendanceRef, {
+                  'studentId': studentId,
+                  'name': student['name'],
+                  'sin': student['sin'],
+                  'isPresent': isPresent,
+                  'date': _selectedDate,
+                  'dayType': _dayType ?? 'Working Day', // Save day type
+                  'finalized': true, // Mark attendance as finalized
+                });
+              }
+
+              // Mark the attendance as finalized
+              final finalizedRef = _firestore
+                  .collection('attendance')
+                  .doc('$year-$department')
+                  .collection(_selectedDate!)
+                  .doc('finalized');
+
+              batch.set(finalizedRef, {'finalized': true});
+
+              await batch.commit();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Attendance marked successfully!')),
                 );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _saveAttendance,
-        child: Icon(Icons.save),
-      ),
-    );
+              }
+            },
+          ),
+        ),
+      );
+    }
   }
+}
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Color.fromARGB(255, 65, 65, 65),
+    appBar: AppBar(
+      title: Text(
+        'Mark Attendance',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      iconTheme: IconThemeData(color: Colors.white),
+      backgroundColor: Color.fromARGB(255, 65, 65, 65),
+    ),
+    body: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'Date: $_selectedDate',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: DropdownButtonFormField<String>(
+            value: _dayType ?? 'Working Day', // Default to 'Working Day'
+            onChanged: _isFinalized
+                ? null // Disable dropdown if attendance is finalized
+                : (String? newValue) {
+                    setState(() {
+                      _dayType = newValue;
+                    });
+                  },
+            items: dayTypes.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            decoration: InputDecoration(
+              labelText: 'Day Type',
+              labelStyle: TextStyle(color: Colors.white),
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _students.length,
+            itemBuilder: (context, index) {
+              final student = _students[index];
+              final studentId = student['id'];
+              return Container(
+                margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 2,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: CheckboxListTile(
+                  title: Text(
+                    student['name'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'SIN: ${student['sin']}',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  value: _attendanceStatus[studentId],
+                  onChanged: _isFinalized
+                      ? null // Disable checkbox if attendance is finalized
+                      : (value) {
+                          setState(() {
+                            _attendanceStatus[studentId] = value ?? false;
+                          });
+                        },
+                  activeColor: Colors.blue,
+                  checkColor: Colors.white,
+                  tileColor: Colors.transparent,
+                ),
+              );
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton(
+            onPressed: _isFinalized ? null : _markAttendance, // Disable button if finalized
+            child: Text('Mark Attendance'),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 }
