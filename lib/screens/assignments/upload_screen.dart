@@ -21,7 +21,7 @@ class _UploadAssignmentScreenState extends State<UploadAssignmentScreen> {
   DateTime? _selectedDate;
 
   final String githubRepo = "munnashaheem96/storage_sscet-app"; // Replace with your repo
-
+  final String githubToken = "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"; // Store securely
   final String githubBranch = "main"; // Change if needed
   final String githubPath = "uploads/"; // Folder in the repo
 
