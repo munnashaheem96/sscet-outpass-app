@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class CheckOpStatus extends StatelessWidget {
+class CheckOpStatus extends StatefulWidget {
   final String requestId;
 
   const CheckOpStatus({
@@ -11,11 +11,26 @@ class CheckOpStatus extends StatelessWidget {
     required this.requestId,
   }) : super(key: key);
 
-  Future<DocumentSnapshot> _fetchRequestDetails() async {
-    return await FirebaseFirestore.instance
-        .collection('outpass_requests')
-        .doc(requestId)
-        .get();
+  @override
+  _CheckOpStatusState createState() => _CheckOpStatusState();
+}
+
+class _CheckOpStatusState extends State<CheckOpStatus> {
+  late Future<DocumentSnapshot> _requestDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshData();
+  }
+
+  void _refreshData() {
+    setState(() {
+      _requestDetails = FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(widget.requestId)
+          .get();
+    });
   }
 
   @override
@@ -28,20 +43,26 @@ class CheckOpStatus extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context); // Navigate back to the previous page
+            Navigator.pop(context);
           },
         ),
         title: const Text(
           'Outpass Status',
           style: TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.w900
+            fontWeight: FontWeight.w900,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _refreshData, // Call the refresh function
+          ),
+        ],
         elevation: 0,
       ),
       body: FutureBuilder<DocumentSnapshot>(
-        future: _fetchRequestDetails(),
+        future: _requestDetails,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -52,13 +73,12 @@ class CheckOpStatus extends StatelessWidget {
           } else {
             var data = snapshot.data!;
             String reason = data['reason'] ?? 'N/A';
-            DateTime? date = (data['date'] != null) ? DateTime.parse(data['date']) : null;
+            DateTime? date =
+                (data['date'] != null) ? DateTime.parse(data['date']) : null;
             String? time = data['time'];
             String? type = data['day_scholar_or_hosteller'];
 
-            // Check if all statuses are not "Pending" and not "Declined"
-            bool allStatusesApproved =
-                data['class_advisor_status'] == 'Approved' &&
+            bool allStatusesApproved = data['class_advisor_status'] == 'Approved' &&
                 data['hod_status'] == 'Approved' &&
                 data['principal_status'] == 'Approved';
 
@@ -67,36 +87,41 @@ class CheckOpStatus extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Details Containers
                   _buildDetailContainer('Reason for Leaving', reason),
-                  _buildDetailContainer('Date of Leaving',
-                      date != null ? DateFormat('yyyy-MM-dd').format(date) : 'N/A'),
+                  _buildDetailContainer(
+                      'Date of Leaving',
+                      date != null
+                          ? DateFormat('yyyy-MM-dd').format(date)
+                          : 'N/A'),
                   _buildDetailContainer('Time of Leaving', time ?? 'N/A'),
                   _buildDetailContainer('Day Scholar or Hosteller', type ?? 'N/A'),
                   const SizedBox(height: 8),
                   Divider(),
-                  SizedBox(height: 8,),
-                  // Status Containers
-                  _buildStatusContainer('Request Submitted', 'Approved'),
-                  _buildStatusContainer('Waiting for Class Advisor Approval', data['class_advisor_status']),
-                  _buildStatusContainer('Waiting for HOD Approval', data['hod_status']),
-                  _buildStatusContainer('Waiting for Principal Approval', data['principal_status']),
+                  const SizedBox(height: 8),
+                  _buildStatusContainer(
+                      'Request Submitted', 'Approved'),
+                  _buildStatusContainer('Waiting for Class Advisor Approval',
+                      data['class_advisor_status']),
+                  _buildStatusContainer('Waiting for HOD Approval',
+                      data['hod_status']),
+                  _buildStatusContainer('Waiting for Principal Approval',
+                      data['principal_status']),
                   const SizedBox(height: 16),
-                  // Show QR Button if all statuses are approved and not declined
                   if (allStatusesApproved)
                     Center(
                       child: ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(Color.fromRGBO(102, 73, 239, 1)),
+                          backgroundColor: MaterialStateProperty.all(
+                              Color.fromRGBO(102, 73, 239, 1)),
                         ),
                         onPressed: () {
-                          _showQrCodeDialog(context, requestId);
+                          _showQrCodeDialog(context, widget.requestId);
                         },
                         child: Text(
                           'Show QR Code',
                           style: TextStyle(
                             color: Colors.white,
-                            fontWeight: FontWeight.bold
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -110,7 +135,6 @@ class CheckOpStatus extends StatelessWidget {
     );
   }
 
-  // Display QR code dialog
   void _showQrCodeDialog(BuildContext context, String docId) {
     showDialog(
       context: context,
@@ -133,9 +157,7 @@ class CheckOpStatus extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Close',
-              style: TextStyle(
-                color: Colors.black
-              ),
+              style: TextStyle(color: Colors.black),
             ),
           ),
         ],
@@ -143,24 +165,22 @@ class CheckOpStatus extends StatelessWidget {
     );
   }
 
-  // Build Status Container widget with dynamic icon
   Widget _buildStatusContainer(String status, String statusValue) {
-    // Determine the status icon and color based on the status value
     IconData iconData;
     Color iconColor;
 
     if (statusValue == 'Pending') {
-      iconData = Icons.remove_circle; // Minus icon for Pending
-      iconColor = Colors.grey; // You can adjust the color as per your preference
+      iconData = Icons.remove_circle;
+      iconColor = Colors.grey;
     } else if (statusValue == 'Approved') {
-      iconData = Icons.check_circle; // Green checkmark for approved
+      iconData = Icons.check_circle;
       iconColor = Colors.green;
     } else if (statusValue == 'Declined') {
-      iconData = Icons.cancel_outlined; // Red cross for declined
+      iconData = Icons.cancel_outlined;
       iconColor = Colors.red;
     } else {
-      iconData = Icons.remove; // Default minus icon if unknown status
-      iconColor = Colors.grey; // Default grey color
+      iconData = Icons.remove;
+      iconColor = Colors.grey;
     }
 
     return Container(
@@ -194,7 +214,6 @@ class CheckOpStatus extends StatelessWidget {
     );
   }
 
-  // Build the details container
   Widget _buildDetailContainer(String label, String value) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),

@@ -1,15 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:first_app/bottom%20navigation/bottom_nav_bar.dart';
 import 'package:first_app/data/models/user_model.dart';
-import 'package:first_app/screens/Outpass/ClassAdvisor/archieved_class.dart';
 import 'package:first_app/screens/Outpass/ClassAdvisor/ca_approvel_page.dart';
 import 'package:first_app/screens/Outpass/HOD/hod_approvel_page.dart';
 import 'package:first_app/screens/Outpass/Principal/p_approvel_page.dart';
 import 'package:first_app/screens/Outpass/Security/security_scan_page.dart';
 import 'package:first_app/screens/Login/login_screen.dart';
-import 'package:first_app/screens/Outpass/Student/archived_op.dart';
+import 'package:first_app/screens/assignments/upload_screen.dart';
+import 'package:first_app/screens/assignments/view_assignments.dart';
 import 'package:flutter/material.dart';
 import 'Outpass/outpass_screen.dart';
+import 'package:iconsax/iconsax.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -21,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   UserModel? user; // Use your custom User model.
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -32,358 +35,365 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final double screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(20)),
-        child: BottomNavigationBar(
-          items: <BottomNavigationBarItem>[
-            const BottomNavigationBarItem(
-              backgroundColor: Color.fromRGBO(102, 73, 239, 1),
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.business),
-              label: 'Business',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'School',
-            ),
-            BottomNavigationBarItem(
-              icon: IconButton(
-                icon: const Icon(Icons.logout_rounded),
-                onPressed: logout,
-              ),
-              label: 'Logout',
-            ),
-          ],
-        ),
-      ),
-      body: user != null
-          ? SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(screenHeight),
-                  const SizedBox(height: 20),
-                  _buildCategories(),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Services',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: const Color(0xFF191919),
+          body: user != null
+              ? SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(screenHeight),
+                      const SizedBox(height: 20),
+                      _buildCategories(),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Services',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white
+                              ),
+                            ),
+                            Text(
+                              'See All',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'See All',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Check user role and display appropriate container
-                        user?.role == 'Student'
-                            ? Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      ),
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Check user role and display appropriate container
+                            user?.role == 'Student'
+                                ? Column(
                                   children: [
-                                    GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => OutpassScreen(),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => OutpassScreen(),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  Image(
+                                                    image: AssetImage('assets/images/exit.png'),
+                                                    height: 100,
+                                                    width: 100,
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  Text(
+                                                    'Out Pass',
+                                                    style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Color.fromRGBO(102, 73, 239, 0.1),
                                           ),
-                                          width: 190,
-                                          height: 250,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Image(
-                                                image: AssetImage('assets/images/outpass.png'),
-                                                height: 120,
-                                                width: 120,
+                                          SizedBox(width: 10,),
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => ViewAssignmentsScreen(),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: Color.fromARGB(255, 65, 65, 65),
                                               ),
-                                              SizedBox(height: 5),
-                                              Text(
-                                                'Out Pass',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  Image(
+                                                    image: AssetImage('assets/images/assignment.png'),
+                                                    height: 100,
+                                                    width: 100,
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  Text(
+                                                    'Assignments',
+                                                    style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 10,),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => OutpassScreen(),
                                             ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Color.fromRGBO(102, 73, 239, 0.1),
-                                          ),
-                                          width: 190,
-                                          height: 250,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Image(
-                                                image: AssetImage('assets/images/outpass.png'),
-                                                height: 120,
-                                                width: 120,
+                                          )
+                                      ],
+                                    ),
+                                    SizedBox(height: 16,),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: Color.fromARGB(255, 65, 65, 65),
                                               ),
-                                              SizedBox(height: 5),
-                                              Text(
-                                                'Assignments',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  Image(
+                                                    image: AssetImage('assets/images/announcement.png'),
+                                                    height: 100,
+                                                    width: 100,
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  Text(
+                                                    'Announcemnets',
+                                                    style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                  ],
-                                ),
-                                SizedBox(height: 16,),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => OutpassScreen(),
                                             ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Color.fromRGBO(102, 73, 239, 0.1),
                                           ),
-                                          width: 190,
-                                          height: 250,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Image(
-                                                image: AssetImage('assets/images/outpass.png'),
-                                                height: 120,
-                                                width: 120,
+                                          SizedBox(width: 10,),
+                                          GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(10),
+                                                color: Color.fromARGB(255, 65, 65, 65),
                                               ),
-                                              SizedBox(height: 5),
-                                              Text(
-                                                'Announcemnets',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  Image(
+                                                    image: AssetImage('assets/images/attendance.png'),
+                                                    height: 100,
+                                                    width: 100,
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  Text(
+                                                    'Attendance',
+                                                    style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 10,),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => OutpassScreen(),
                                             ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Color.fromRGBO(102, 73, 239, 0.1),
-                                          ),
-                                          width: 190,
-                                          height: 250,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Image(
-                                                image: AssetImage('assets/images/outpass.png'),
-                                                height: 120,
-                                                width: 120,
-                                              ),
-                                              SizedBox(height: 5),
-                                              Text(
-                                                'Time Table',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                  ],
-                                ),
-                              ],
-                            )
-                            : user?.role == 'Class Advisor'
-                                ? Row(
-                                  children: [
-                                    GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => ClassAdvisorApprovalScreen(),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Color.fromRGBO(102, 73, 239, 0.1),
-                                          ),
-                                          width: 190,
-                                          height: 250,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Image(
-                                                image: AssetImage('assets/images/outpass.png'),
-                                                height: 120,
-                                                width: 120,
-                                              ),
-                                              SizedBox(height: 5),
-                                              Text(
-                                                'Review Outpasses',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 10,),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => ArchivedClass(),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Color.fromRGBO(102, 73, 239, 0.1),
-                                          ),
-                                          width: 190,
-                                          height: 250,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Image(
-                                                image: AssetImage('assets/images/outpass.png'),
-                                                height: 120,
-                                                width: 120,
-                                              ),
-                                              SizedBox(height: 5),
-                                              Text(
-                                                'Archived Outpasses',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                          )
+                                      ],
+                                    ),
+                                    SizedBox(height: 80,)
                                   ],
                                 )
-                                : user?.role == 'HOD'
-                                    ? GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => HODApprovalScreen(),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: Colors.blue[200],
-                                          ),
-                                          width: 190,
-                                          height: 250,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Image(
-                                                image: AssetImage('assets/images/outpass.png'),
-                                                height: 120,
-                                                width: 120,
+                                : user?.role == 'Class Advisor'
+                                    ? Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => ClassAdvisorApprovalScreen(),
                                               ),
-                                              SizedBox(height: 5),
-                                              Text(
-                                                'Review Outpasses',
-                                                style: TextStyle(
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/exit.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Center(
+                                                  child: Text(
+                                                  'Review Outpasses',
+                                                  style: TextStyle(
                                                     fontSize: 20,
-                                                    fontWeight: FontWeight.bold),
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white),
+                                                  ),
+                                                ),
+                                              ],
                                               ),
-                                            ],
-                                          ),
+                                            ),
+                                            ),
+                                            SizedBox(width: 10,),
+                                            GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/exit.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                'Student Contact',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white),
+                                                ),
+                                              ],
+                                              ),
+                                            ),
+                                            ),
+                                          ],
                                         ),
-                                      )
-                                    : user?.role == 'Principal'
+                                        SizedBox(height: 15,),
+                                        Row(
+                                          children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => UploadAssignmentScreen(),
+                                              ),
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/assignment.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                'Post Assignments',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white),
+                                                ),
+                                              ],
+                                              ),
+                                            ),
+                                            ),
+                                            SizedBox(width: 10,),
+                                            GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/attendance.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                'Mark Attendance',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white),
+                                                ),
+                                              ],
+                                              ),
+                                            ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 80,)
+                                      ],
+                                    )
+                                    : user?.role == 'HOD'
                                         ? GestureDetector(
                                             onTap: () {
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) => PrincipalApprovalScreen(),
+                                                  builder: (context) => HODApprovalScreen(),
                                                 ),
                                               );
                                             },
@@ -399,11 +409,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 crossAxisAlignment: CrossAxisAlignment.center,
                                                 children: [
                                                   Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
+                                                    image: AssetImage('assets/images/exit.png'),
+                                                    height: 100,
+                                                    width: 100,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  SizedBox(height: 10),
                                                   Text(
                                                     'Review Outpasses',
                                                     style: TextStyle(
@@ -414,13 +424,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                             ),
                                           )
-                                        : user?.role == 'Security'
+                                        : user?.role == 'Principal'
                                             ? GestureDetector(
                                                 onTap: () {
                                                   Navigator.push(
                                                     context,
                                                     MaterialPageRoute(
-                                                      builder: (context) => SecurityScanPage(),
+                                                      builder: (context) => PrincipalApprovalScreen(),
                                                     ),
                                                   );
                                                 },
@@ -436,11 +446,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
                                                       Image(
-                                                        image: AssetImage('assets/images/outpass.png'),
-                                                        height: 120,
-                                                        width: 120,
+                                                        image: AssetImage('assets/images/exit.png'),
+                                                        height: 100,
+                                                        width: 100,
                                                       ),
-                                                      SizedBox(height: 5),
+                                                      SizedBox(height: 10),
                                                       Text(
                                                         'Review Outpasses',
                                                         style: TextStyle(
@@ -451,15 +461,59 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ),
                                               )
-                                            : Container(), // Default if the role is not found.
-                      ],
-                    ),
+                                            : user?.role == 'Security'
+                                                ? GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) => SecurityScanPage(),
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        color: Colors.blue[200],
+                                                      ),
+                                                      width: 190,
+                                                      height: 250,
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        children: [
+                                                          Image(
+                                                            image: AssetImage('assets/images/exit.png'),
+                                                            height: 100,
+                                                            width: 100,
+                                                          ),
+                                                          SizedBox(height: 10),
+                                                          Text(
+                                                            'Review Outpasses',
+                                                            style: TextStyle(
+                                                                fontSize: 20,
+                                                                fontWeight: FontWeight.bold),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  )
+                                                : Container(), // Default if the role is not found.
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16)
+                    ],
                   ),
-                  SizedBox(height: 16)
-                ],
-              ),
-            )
-          : const Center(child: CircularProgressIndicator()),
+                )
+              : const Center(child: CircularProgressIndicator()),
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          left: 0,
+          child:BottomNavBar(_selectedIndex = 1))
+      ],
     );
   }
 
@@ -471,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Container(
         height: screenHeight * 0.3,
-        color: const Color(0xFF6649EF),
+        color: const Color(0xFF202020),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 70, 18, 0),
           child: Column(
@@ -522,18 +576,18 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: _buildCategoryItems([
-            {'color': Color(0xFFFFD700), 'icon': Icons.category, 'text': 'Category'},
-            {'color': Color(0xFF32CD32), 'icon': Icons.play_lesson_outlined, 'text': 'Classes'},
-            {'color': Color(0xFF87CEEB), 'icon': Icons.book, 'text': 'Free Course'},
+            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.category_2, 'text': 'Category'},
+            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.video_play4, 'text': 'Classes'},
+            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.book, 'text': 'Free Course'},
           ]),
         ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: _buildCategoryItems([
-            {'color': Color(0xFFFF69B4), 'icon': Icons.store, 'text': 'Book Store'},
-            {'color': Color.fromARGB(255, 197, 64, 250), 'icon': Icons.play_circle_fill, 'text': 'Live Course'},
-            {'color': Color.fromARGB(255, 0, 101, 141), 'icon': Icons.leaderboard, 'text': 'Leaderboard'},
+            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.building, 'text': 'Book Store'},
+            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.play, 'text': 'Live Course'},
+            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.cup, 'text': 'Leaderboard'},
           ]),
         ),
       ],
@@ -558,7 +612,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               item['text'],
               style: const TextStyle(
-                color: Colors.black,
+                color: Color.fromARGB(255, 255, 255, 255),
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),

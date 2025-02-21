@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF191919),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -47,15 +47,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white
                   ),
                 ),
                 SizedBox(height: 20),
                 TextFormField(
+                  style: TextStyle(color: Colors.white),
                   controller: emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    labelStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white)
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white)
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white)
+                    )
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -70,16 +80,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: 10),
                 TextFormField(
+                  style: TextStyle(color: Colors.white),
                   controller: passwordController,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    labelStyle: TextStyle(color: Colors.black),
+                    labelStyle: TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),
                     border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white)
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white)
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off
                             : Icons.visibility,
+                            color: Colors.white,
                       ),
                       onPressed: () {
                         setState(() {
@@ -113,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     child: Text(
                       'Forgot Password?',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255)),
                     ),
                   ),
                 ),
