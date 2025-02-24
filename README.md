@@ -47,5 +47,8 @@ Contributions are welcome! Please follow these steps:
 This project is licensed under the MIT License. Feel free to modify and use it as needed.
 
 ## Contact
-For any queries or suggestions, feel free to reach out at [munnashaheemperinchikkal@gmail.com](munnashaheemperinchikkal@gmail.com).
+For any queries or suggestions, feel free to reach out at [munnashaheemperinchikkal@gmail.com](mailto:munnashaheemperinchikkal@gmail.com).
+
+## Copyright
+© 2024 Munna Shaheem. All rights reserved.
 

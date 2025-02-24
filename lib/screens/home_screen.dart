@@ -23,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   UserModel? user; // Use your custom User model.
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  // ignore: unused_field
   int _selectedIndex = 0;
 
   @override
