@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_app/color/Colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -38,10 +39,10 @@ class _CheckOpStatusState extends State<CheckOpStatus> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primaryColor,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.secondaryColor),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -49,13 +50,13 @@ class _CheckOpStatusState extends State<CheckOpStatus> {
         title: const Text(
           'Outpass Status',
           style: TextStyle(
-            color: Colors.black,
+            color: Color.fromARGB(255, 255, 255, 255),
             fontWeight: FontWeight.w900,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
+            icon: const Icon(Icons.refresh, color: AppColors.secondaryColor),
             onPressed: _refreshData, // Call the refresh function
           ),
         ],
@@ -187,7 +188,7 @@ class _CheckOpStatusState extends State<CheckOpStatus> {
       margin: const EdgeInsets.only(bottom: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(102, 73, 239, 0.1),
+        color: AppColors.color4,
         borderRadius: BorderRadius.circular(8.0),
         boxShadow: [
           BoxShadow(
@@ -219,7 +220,7 @@ class _CheckOpStatusState extends State<CheckOpStatus> {
       margin: const EdgeInsets.only(bottom: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(102, 73, 239, 0.1),
+        color: AppColors.color4,
         borderRadius: BorderRadius.circular(8.0),
         boxShadow: [
           BoxShadow(

@@ -64,46 +64,48 @@ class CaRequestDetailsScreen extends StatelessWidget {
             String? type = data['day_scholar_or_hosteller'];
             final departmentShortForm = departmentShortForms[data['department']] ?? data['department'];
 
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDetailContainer('Name of The Student', name),
-                  _buildDetailContainer('SIN Number', sin),
-                  _buildDetailContainer('Year & Department', '$year & $departmentShortForm'),
-                  _buildDetailContainer('Reason for Leaving', reason),
-                  _buildDetailContainer('Date of Leaving', date != null ? DateFormat('yyyy-MM-dd').format(date) : 'N/A'),
-                  _buildDetailContainer('Time of Leaving', time ?? 'N/A'),
-                  _buildDetailContainer('Day Scholar or Hosteller', type ?? 'N/A'),
-                  const SizedBox(height: 8),
-                  Divider(),
-                  const SizedBox(height: 8),
-                  _buildStatusContainer('Request Submitted', 'Approved'),
-                  _buildStatusContainer('Waiting for Class Advisor Approval', data['class_advisor_status']),
-                  _buildStatusContainer('Waiting for HOD Approval', data['hod_status']),
-                  _buildStatusContainer('Waiting for Principal Approval', data['principal_status']),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          _updateRequestStatus(context, 'Approved');
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        child: Text('Accept', style: TextStyle(color: Colors.white)),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          _updateRequestStatus(context, 'Declined');
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: Text('Decline', style: TextStyle(color: Colors.white)),
-                      ),
-                    ],
-                  ),
-                ],
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailContainer('Name of The Student', name),
+                    _buildDetailContainer('SIN Number', sin),
+                    _buildDetailContainer('Year & Department', '$year & $departmentShortForm'),
+                    _buildDetailContainer('Reason for Leaving', reason),
+                    _buildDetailContainer('Date of Leaving', date != null ? DateFormat('yyyy-MM-dd').format(date) : 'N/A'),
+                    _buildDetailContainer('Time of Leaving', time ?? 'N/A'),
+                    _buildDetailContainer('Day Scholar or Hosteller', type ?? 'N/A'),
+                    const SizedBox(height: 8),
+                    Divider(),
+                    const SizedBox(height: 8),
+                    _buildStatusContainer('Request Submitted', 'Approved'),
+                    _buildStatusContainer('Waiting for Class Advisor Approval', data['class_advisor_status']),
+                    _buildStatusContainer('Waiting for HOD Approval', data['hod_status']),
+                    _buildStatusContainer('Waiting for Principal Approval', data['principal_status']),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            _updateRequestStatus(context, 'Approved');
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          child: Text('Accept', style: TextStyle(color: Colors.white)),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            _updateRequestStatus(context, 'Declined');
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          child: Text('Decline', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             );
           }

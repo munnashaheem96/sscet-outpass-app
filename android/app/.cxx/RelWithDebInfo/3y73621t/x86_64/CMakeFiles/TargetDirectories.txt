@@ -1,0 +1,2 @@
+D:/Munna Flutter/first_app/android/app/.cxx/RelWithDebInfo/3y73621t/x86_64/CMakeFiles/edit_cache.dir
+D:/Munna Flutter/first_app/android/app/.cxx/RelWithDebInfo/3y73621t/x86_64/CMakeFiles/rebuild_cache.dir

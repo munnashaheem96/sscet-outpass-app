@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:first_app/color/Colors.dart';
 import 'package:flutter/material.dart';
 
 class ArchivedOutPasses extends StatelessWidget {
@@ -24,8 +25,9 @@ class ArchivedOutPasses extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Archived Outpasses'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+        iconTheme: IconThemeData(color: AppColors.secondaryColor),
       ),
       backgroundColor: Colors.white,
       body: StreamBuilder<QuerySnapshot>(
@@ -60,7 +62,7 @@ class ArchivedOutPasses extends StatelessWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(102, 73, 239, 0.1),
+                      color: AppColors.color3,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     width: MediaQuery.of(context).size.width - 16,
@@ -103,7 +105,7 @@ class ArchivedOutPasses extends StatelessWidget {
                       width: 100,
                       height: 30,
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(102, 73, 239, 1),
+                        color: AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       alignment: Alignment.center,
@@ -127,7 +129,7 @@ class ArchivedOutPasses extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 100,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                            color: AppColors.primaryColor,
                           ),
                         ),
                       ),
@@ -143,7 +145,7 @@ class ArchivedOutPasses extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 100,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                            color: AppColors.primaryColor,
                           ),
                         ),
                       ),

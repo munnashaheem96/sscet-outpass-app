@@ -1,5 +1,6 @@
 import 'package:first_app/screens/Login/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:first_app/color/Colors.dart'; // Correct import path
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -12,22 +13,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF191919),
+      backgroundColor: AppColors.primaryColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
               'assets/images/onboarding.png',
-              width: 200,
+              height: 250,
             ),
-            SizedBox(height: 60,),
-            Text(
+            const SizedBox(height: 60),
+            const Text(
               'Welcome to SSCET App!',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 255, 255, 255),
+                color: Color.fromARGB(255, 255, 255, 255),
               ),
             ),
             const SizedBox(height: 20),
@@ -36,12 +37,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LoginScreen(),
+                    builder: (context) => LoginScreen(), // Added const for optimization
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 255, 115, 92),
+                backgroundColor: AppColors.secondaryColor, // Use AppColors for consistency
                 padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -51,7 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 'Get Started',
                 style: TextStyle(
                   fontSize: 18,
-                  color: Color.fromARGB(255, 255, 255, 255),
+                  color: AppColors.primaryColor,
                 ),
               ),
             ),

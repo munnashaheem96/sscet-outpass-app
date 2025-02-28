@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_app/color/Colors.dart';
 import 'package:first_app/screens/Outpass/Student/check_op_status.dart';
 import 'package:flutter/material.dart';
 
@@ -20,9 +21,9 @@ class PendingOutpassScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pending Outpasses'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text('Pending Outpasses', style: TextStyle(color: Colors.white),),
+        backgroundColor: AppColors.primaryColor,
+        iconTheme: IconThemeData(color: AppColors.secondaryColor),
       ),
       backgroundColor: Colors.white,
       body: StreamBuilder<QuerySnapshot>(
@@ -54,7 +55,7 @@ class PendingOutpassScreen extends StatelessWidget {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(102, 73, 239, 0.1),
+                      color: AppColors.color4,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     width: MediaQuery.of(context).size.width - 16,
@@ -100,7 +101,7 @@ class PendingOutpassScreen extends StatelessWidget {
                     bottom: 12,
                     child: ElevatedButton(
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(102, 73, 239, 1)),
+                        backgroundColor: MaterialStateProperty.all<Color>(AppColors.primaryColor),
                       ),
                       onPressed: () {
                         Navigator.push(
@@ -125,7 +126,7 @@ class PendingOutpassScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 100, // Large size for the watermark
                             fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                            color: AppColors.primaryColor,
                           ),
                         ),
                       ),
@@ -141,7 +142,7 @@ class PendingOutpassScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 100, // Large size for the watermark
                             fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                            color: AppColors.primaryColor,
                           ),
                         ),
                       ),

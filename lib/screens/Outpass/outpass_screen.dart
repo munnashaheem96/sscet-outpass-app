@@ -1,3 +1,4 @@
+import 'package:first_app/color/Colors.dart';
 import 'package:first_app/screens/Outpass/Student/archived_op.dart';
 import 'package:first_app/screens/Outpass/Student/pending_op.dart';
 import 'package:first_app/screens/Outpass/Student/request_op.dart';
@@ -9,13 +10,15 @@ class OutpassScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: AppColors.secondaryColor),
         title: Text(
           'Outpass',
           style: TextStyle(
-            fontWeight: FontWeight.w900
+            fontWeight: FontWeight.w900,
+            color: Colors.white
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primaryColor,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -29,15 +32,22 @@ class OutpassScreen extends StatelessWidget {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Color.fromARGB(255, 0, 101, 141),
+                  color: AppColors.color1,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
                 ),
                 child: Center(
                   child: Text(
                     'Request Outpass',
                     style: TextStyle(
                       fontSize: 18,
-                      color: const Color.fromARGB(255, 255, 255, 255),
+                      color: AppColors.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -52,15 +62,22 @@ class OutpassScreen extends StatelessWidget {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Color(0xFFFF69B4),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.color3,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
                 ),
                 child: Center(
                   child: Text(
                     'Pending Request',
                     style: TextStyle(
                       fontSize: 18,
-                      color: const Color.fromARGB(255, 255, 255, 255),
+                      color: AppColors.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -75,15 +92,22 @@ class OutpassScreen extends StatelessWidget {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Color.fromARGB(255, 197, 64, 250),
+                  color: AppColors.color5,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
                 ),
                 child: Center(
                   child: Text(
                     'Archived Outpasses',
                     style: TextStyle(
                       fontSize: 18,
-                      color: const Color.fromARGB(255, 255, 255, 255),
+                      color: AppColors.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
