@@ -9,7 +9,6 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -54,11 +53,11 @@ class _WrapperState extends State<Wrapper> {
   @override
   Widget build(BuildContext context) {
     if (isFirstTime == null) {
-      return const Center(child: CircularProgressIndicator()); 
+      return const Center(child: CircularProgressIndicator());
     } else if (isFirstTime == true) {
       return const OnboardingScreen();
     } else {
-      return isLoggedIn == true ? const HomeScreen() :  LoginScreen();
+      return isLoggedIn == true ? const HomeScreen() : LoginScreen();
     }
   }
 

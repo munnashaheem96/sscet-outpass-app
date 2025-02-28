@@ -4,7 +4,7 @@ import 'package:photo_view/photo_view.dart';
 class FullScreenImage extends StatelessWidget {
   final String imageUrl;
 
-  FullScreenImage({required this.imageUrl});
+  const FullScreenImage({Key? key, required this.imageUrl}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,14 @@ class FullScreenImage extends StatelessWidget {
       body: Center(
         child: PhotoView(
           imageProvider: NetworkImage(imageUrl),
-          backgroundDecoration: BoxDecoration(color: Colors.black),
+          backgroundDecoration: const BoxDecoration(color: Colors.black),
+          loadingBuilder: (context, event) {
+            if (event == null) return const SizedBox();
+            return const Center(child: CircularProgressIndicator());
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 100));
+          },
         ),
       ),
     );

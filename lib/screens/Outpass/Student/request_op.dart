@@ -21,7 +21,6 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
   String? _year;
   String? _department;
 
-  // Mapping of department names to their short forms
   final Map<String, String> departmentShortForms = {
     'Mechanical Engineering': 'ME',
     'Computer Science & Engineering': 'CSE',
@@ -50,7 +49,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
           _name = "${userDoc['firstName']} ${userDoc['lastName']}";
           _sin = userDoc['sin'];
           _year = userDoc['year'];
-          _department = userDoc['department'];
+          _department = userDoc['department']; // Full department name
         });
       }
     }
@@ -92,7 +91,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
           'name': _name,
           'sin': _sin,
           'year': _year,
-          'department' : _department,
+          'department': _department, // Full department name
           'reason': _reasonController.text,
           'date': _dateController.text,
           'time': _timeController.text,
@@ -111,7 +110,6 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Outpass request submitted successfully!')),
-
         );
 
         _formKey.currentState!.reset();
@@ -132,16 +130,16 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
           Stack(
             children: [
               Container(
-                height: MediaQuery.of(context).size.height * 0.2, // Adjust the height as needed
+                height: MediaQuery.of(context).size.height * 0.2,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/images/sscet1.jpg'), // Your image here
+                    image: AssetImage('assets/images/sscet1.jpg'),
                     fit: BoxFit.cover,
                   ),
                   gradient: LinearGradient(
                     colors: [
                       Colors.black.withOpacity(0.5),
-                      Colors.transparent, // Make it transparent at the top
+                      Colors.transparent,
                     ],
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
@@ -163,7 +161,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                             blurRadius: 3.0,
                             color: Color.fromRGBO(102, 73, 239, 1),
                           ),
-                        ]
+                        ],
                       ),
                       onPressed: () {
                         Navigator.pop(context);
@@ -204,7 +202,8 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildDetailContainerDoubleSmall('Year', '$_year'),
-                        _buildDetailContainerDoubleBig('Department', departmentShortForms[_department ?? ''] ?? '$_department')
+                        _buildDetailContainerDoubleBig(
+                            'Department', departmentShortForms[_department ?? ''] ?? '$_department'),
                       ],
                     ),
                     SizedBox(height: 16),
@@ -227,6 +226,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                         suffixIcon: Icon(Icons.calendar_today),
                       ),
                       onTap: () => _selectDate(context, _dateController),
+                      validator: (value) => value!.isEmpty ? 'Please select a date' : null,
                     ),
                     SizedBox(height: 16),
                     TextFormField(
@@ -238,6 +238,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                         suffixIcon: Icon(Icons.access_time),
                       ),
                       onTap: () => _selectTime(context, _timeController),
+                      validator: (value) => value!.isEmpty ? 'Please select a time' : null,
                     ),
                     SizedBox(height: 16),
                     DropdownButtonFormField<String>(
@@ -250,6 +251,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                         DropdownMenuItem(value: 'Hosteller', child: Text('Hosteller')),
                       ],
                       onChanged: (value) => setState(() => _selectedCategory = value),
+                      validator: (value) => value == null ? 'Please select an option' : null,
                     ),
                     if (_selectedCategory == 'Hosteller') ...[
                       SizedBox(height: 16),
@@ -262,6 +264,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                           suffixIcon: Icon(Icons.calendar_today),
                         ),
                         onTap: () => _selectDate(context, _returnDateController),
+                        validator: (value) => value!.isEmpty ? 'Please select a return date' : null,
                       ),
                       SizedBox(height: 16),
                       TextFormField(
@@ -273,6 +276,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                           suffixIcon: Icon(Icons.access_time),
                         ),
                         onTap: () => _selectTime(context, _returnTimeController),
+                        validator: (value) => value!.isEmpty ? 'Please select a return time' : null,
                       ),
                     ],
                     SizedBox(height: 24),
@@ -285,10 +289,7 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
                         ),
                         child: Text(
                           'Submit Request',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
                     ),
@@ -321,14 +322,8 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value ?? 'N/A', style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
@@ -354,15 +349,8 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(width: 10),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value ?? 'N/A', style: const TextStyle(fontSize: 16)),
         ],
       ),
     );
@@ -388,15 +376,8 @@ class _RequestOpScreenState extends State<RequestOpScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(width: 10),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value ?? 'N/A', style: const TextStyle(fontSize: 16)),
         ],
       ),
     );

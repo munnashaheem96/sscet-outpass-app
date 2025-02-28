@@ -104,4 +104,3 @@ class _SecurityScanPageState extends State<SecurityScanPage> {
     );
   }
 }
-

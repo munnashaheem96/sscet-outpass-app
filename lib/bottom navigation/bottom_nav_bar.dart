@@ -1,3 +1,4 @@
+import 'package:first_app/color/Colors.dart';
 import 'package:first_app/screens/Login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
@@ -22,17 +23,17 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     return CurvedNavigationBar(
       backgroundColor: Colors.transparent, // Background behind the bar
-      color: Color.fromARGB(255, 65, 65, 65), // Navigation bar color
-      buttonBackgroundColor: Color.fromARGB(255, 65, 65, 65), // Active button color
+      color: AppColors.primaryColor, // Navigation bar color
+      buttonBackgroundColor: AppColors.primaryColor, // Active button color
       height: 75,
       animationDuration: Duration(milliseconds: 300),
       index: _selectedIndex, // Current selected index
       items: <Widget>[
-        Icon(Iconsax.home, size: 30, color: const Color.fromARGB(255, 255, 255, 255)),
-        Icon(Iconsax.building_3, size: 30, color: const Color.fromARGB(255, 255, 255, 255)),
-        Icon(Iconsax.heart, size: 30, color: const Color.fromARGB(255, 255, 255, 255)),
-        Icon(Iconsax.favorite_chart, size: 30, color: const Color.fromARGB(255, 255, 255, 255)),
-        IconButton(onPressed: logout, icon: Icon(Iconsax.logout, color: const Color.fromARGB(255, 255, 255, 255),))
+        Icon(Iconsax.home, size: 30, color: AppColors.secondaryColor),
+        Icon(Iconsax.building_3, size: 30, color: AppColors.secondaryColor),
+        Icon(Iconsax.heart, size: 30, color: AppColors.secondaryColor),
+        Icon(Iconsax.favorite_chart, size: 30, color: AppColors.secondaryColor),
+        IconButton(onPressed: logout, icon: Icon(Iconsax.logout, color: AppColors.secondaryColor))
       ],
       onTap: (index) {
         setState(() {
@@ -45,7 +46,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     await _auth.signOut();
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()), // Use appropriate screen.
+      MaterialPageRoute(builder: (context) => LoginScreen()),
     );
   }
 }

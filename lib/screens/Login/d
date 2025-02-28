@@ -1,17 +1,97 @@
+main.dart:
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/Login/onboarding_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/Login/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(const FirstApp());
+}
+
+class FirstApp extends StatelessWidget {
+  const FirstApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'SSCET APP',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        textTheme: GoogleFonts.poppinsTextTheme(),
+      ),
+      home: const Wrapper(),
+    );
+  }
+}
+
+class Wrapper extends StatefulWidget {
+  const Wrapper({super.key});
+
+  @override
+  State<Wrapper> createState() => _WrapperState();
+}
+
+class _WrapperState extends State<Wrapper> {
+  late SharedPreferences pref;
+  bool? isLoggedIn = false;
+  bool? isFirstTime;
+
+  @override
+  void initState() {
+    super.initState();
+    initPreferences();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isFirstTime == null) {
+      return const Center(child: CircularProgressIndicator()); 
+    } else if (isFirstTime == true) {
+      return const OnboardingScreen();
+    } else {
+      return isLoggedIn == true ? const HomeScreen() :  LoginScreen();
+    }
+  }
+
+  void initPreferences() async {
+    pref = await SharedPreferences.getInstance();
+    setState(() {
+      isFirstTime = pref.getBool("isFirstTime") ?? true;
+      if (isFirstTime == true) {
+        pref.setBool("isFirstTime", false);
+      }
+      isLoggedIn = pref.getBool("isLogin") ?? false;
+    });
+  }
+}
+
+lib\screens\home_screen.dart:
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:first_app/bottom%20navigation/bottom_nav_bar.dart';
 import 'package:first_app/data/models/user_model.dart';
-import 'package:first_app/screens/Outpass/ClassAdvisor/archieved_class.dart';
 import 'package:first_app/screens/Outpass/ClassAdvisor/ca_approvel_page.dart';
 import 'package:first_app/screens/Outpass/HOD/hod_approvel_page.dart';
 import 'package:first_app/screens/Outpass/Principal/p_approvel_page.dart';
 import 'package:first_app/screens/Outpass/Security/security_scan_page.dart';
 import 'package:first_app/screens/Login/login_screen.dart';
+import 'package:first_app/screens/assignments/upload_screen.dart';
+import 'package:first_app/screens/assignments/view_assignments.dart';
 import 'package:flutter/material.dart';
 import 'Outpass/outpass_screen.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:first_app/color/Colors.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -23,6 +103,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   UserModel? user; // Use your custom User model.
   final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  // ignore: unused_field
   int _selectedIndex = 0;
 
   @override
@@ -38,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: const Color(0xFF191919),
+          backgroundColor: Colors.white,
           body: user != null
               ? SingleChildScrollView(
                   child: Column(
@@ -58,13 +139,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white
+                                color: AppColors.primaryColor
                               ),
                             ),
                             Text(
                               'See All',
                               style: TextStyle(
-                                color: Colors.blue,
+                                color: const Color.fromARGB(255, 42, 64, 68),
                                 fontWeight: FontWeight.w400,
                                 fontSize: 15,
                               ),
@@ -97,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(10),
-                                                color: Color.fromARGB(255, 65, 65, 65),
+                                                color: AppColors.color1,
                                               ),
                                               width: 190,
                                               height: 250,
@@ -106,17 +187,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 crossAxisAlignment: CrossAxisAlignment.center,
                                                 children: [
                                                   Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
+                                                    image: AssetImage('assets/images/exit.png'),
+                                                    height: 100,
+                                                    width: 100,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  SizedBox(height: 10),
                                                   Text(
                                                     'Out Pass',
                                                     style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
-                                                        color: Colors.white
+                                                        color: AppColors.primaryColor
                                                     ),
                                                   ),
                                                 ],
@@ -126,12 +207,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                           SizedBox(width: 10,),
                                           GestureDetector(
                                             onTap: () {
-                                              
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => ViewAssignmentsScreen(),
+                                                ),
+                                              );
                                             },
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(10),
-                                                color: Color.fromARGB(255, 65, 65, 65),
+                                                color: AppColors.color2,
                                               ),
                                               width: 190,
                                               height: 250,
@@ -140,17 +226,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 crossAxisAlignment: CrossAxisAlignment.center,
                                                 children: [
                                                   Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
+                                                    image: AssetImage('assets/images/assignment.png'),
+                                                    height: 100,
+                                                    width: 100,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  SizedBox(height: 10),
                                                   Text(
                                                     'Assignments',
                                                     style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
-                                                        color: Colors.white
+                                                        color: AppColors.primaryColor
                                                     ),
                                                   ),
                                                 ],
@@ -168,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(10),
-                                                color: Color.fromARGB(255, 65, 65, 65),
+                                                color: AppColors.color3,
                                               ),
                                               width: 190,
                                               height: 250,
@@ -177,17 +263,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 crossAxisAlignment: CrossAxisAlignment.center,
                                                 children: [
                                                   Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
+                                                    image: AssetImage('assets/images/announcement.png'),
+                                                    height: 100,
+                                                    width: 100,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  SizedBox(height: 10),
                                                   Text(
                                                     'Announcemnets',
                                                     style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
-                                                        color: Colors.white),
+                                                        color: AppColors.primaryColor),
                                                   ),
                                                 ],
                                               ),
@@ -195,18 +281,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           SizedBox(width: 10,),
                                           GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => OutpassScreen(),
-                                                ),
-                                              );
-                                            },
+                                            onTap: () {},
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(10),
-                                                color: Color.fromARGB(255, 65, 65, 65),
+                                                color: AppColors.color4,
                                               ),
                                               width: 190,
                                               height: 250,
@@ -215,17 +294,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 crossAxisAlignment: CrossAxisAlignment.center,
                                                 children: [
                                                   Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
+                                                    image: AssetImage('assets/images/attendance.png'),
+                                                    height: 100,
+                                                    width: 100,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  SizedBox(height: 10),
                                                   Text(
-                                                    'Time Table',
+                                                    'Attendance',
                                                     style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
-                                                        color: Colors.white),
+                                                        color: AppColors.primaryColor),
                                                   ),
                                                 ],
                                               ),
@@ -233,84 +312,160 @@ class _HomeScreenState extends State<HomeScreen> {
                                           )
                                       ],
                                     ),
+                                    SizedBox(height: 80,)
                                   ],
                                 )
                                 : user?.role == 'Class Advisor'
-                                    ? Row(
+                                    ? Column(
                                       children: [
-                                        GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => ClassAdvisorApprovalScreen(),
-                                                ),
-                                              );
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: Color.fromRGBO(102, 73, 239, 0.1),
-                                              ),
-                                              width: 190,
-                                              height: 250,
-                                              child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
-                                                  ),
-                                                  SizedBox(height: 5),
-                                                  Text(
-                                                    'Review Outpasses',
-                                                    style: TextStyle(
-                                                        fontSize: 20,
-                                                        fontWeight: FontWeight.bold),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(width: 10,),
+                                        Row(
+                                          children: [
                                           GestureDetector(
                                             onTap: () {
                                               Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => ArchivedClass(),
-                                                ),
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => ClassAdvisorApprovalScreen(),
+                                              ),
                                               );
                                             },
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: Color.fromRGBO(102, 73, 239, 0.1),
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
                                               ),
                                               width: 190,
                                               height: 250,
                                               child: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                crossAxisAlignment: CrossAxisAlignment.center,
-                                                children: [
-                                                  Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/exit.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Center(
+                                                  child: Text(
+                                                  'Review Outpasses',
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white),
                                                   ),
-                                                  SizedBox(height: 5),
-                                                  Text(
-                                                    'Archived Outpasses',
-                                                    style: TextStyle(
-                                                        fontSize: 20,
-                                                        fontWeight: FontWeight.bold),
-                                                  ),
-                                                ],
+                                                ),
+                                              ],
                                               ),
                                             ),
-                                          ),
+                                            ),
+                                            SizedBox(width: 10,),
+                                            GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/exit.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                'Student Contact',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white),
+                                                ),
+                                              ],
+                                              ),
+                                            ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 15,),
+                                        Row(
+                                          children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => UploadAssignmentScreen(),
+                                              ),
+                                              );
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/assignment.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                'Post Assignments',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white),
+                                                ),
+                                              ],
+                                              ),
+                                            ),
+                                            ),
+                                            SizedBox(width: 10,),
+                                            GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromARGB(255, 65, 65, 65),
+                                              ),
+                                              width: 190,
+                                              height: 250,
+                                              child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Image(
+                                                image: AssetImage('assets/images/attendance.png'),
+                                                height: 100,
+                                                width: 100,
+                                                ),
+                                                SizedBox(height: 10),
+                                                Text(
+                                                'Mark Attendance',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white),
+                                                ),
+                                              ],
+                                              ),
+                                            ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 80,)
                                       ],
                                     )
                                     : user?.role == 'HOD'
@@ -335,11 +490,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 crossAxisAlignment: CrossAxisAlignment.center,
                                                 children: [
                                                   Image(
-                                                    image: AssetImage('assets/images/outpass.png'),
-                                                    height: 120,
-                                                    width: 120,
+                                                    image: AssetImage('assets/images/exit.png'),
+                                                    height: 100,
+                                                    width: 100,
                                                   ),
-                                                  SizedBox(height: 5),
+                                                  SizedBox(height: 10),
                                                   Text(
                                                     'Review Outpasses',
                                                     style: TextStyle(
@@ -372,11 +527,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
                                                       Image(
-                                                        image: AssetImage('assets/images/outpass.png'),
-                                                        height: 120,
-                                                        width: 120,
+                                                        image: AssetImage('assets/images/exit.png'),
+                                                        height: 100,
+                                                        width: 100,
                                                       ),
-                                                      SizedBox(height: 5),
+                                                      SizedBox(height: 10),
                                                       Text(
                                                         'Review Outpasses',
                                                         style: TextStyle(
@@ -409,11 +564,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         crossAxisAlignment: CrossAxisAlignment.center,
                                                         children: [
                                                           Image(
-                                                            image: AssetImage('assets/images/outpass.png'),
-                                                            height: 120,
-                                                            width: 120,
+                                                            image: AssetImage('assets/images/exit.png'),
+                                                            height: 100,
+                                                            width: 100,
                                                           ),
-                                                          SizedBox(height: 5),
+                                                          SizedBox(height: 10),
                                                           Text(
                                                             'Review Outpasses',
                                                             style: TextStyle(
@@ -451,7 +606,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Container(
         height: screenHeight * 0.3,
-        color: const Color(0xFF202020),
+        color: AppColors.primaryColor,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 70, 18, 0),
           child: Column(
@@ -502,18 +657,18 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: _buildCategoryItems([
-            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.category_2, 'text': 'Category'},
-            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.video_play4, 'text': 'Classes'},
-            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.book, 'text': 'Free Course'},
+            {'color': AppColors.color1, 'icon': Iconsax.category_2, 'text': 'Category'},
+            {'color': AppColors.color2, 'icon': Iconsax.video_play4, 'text': 'Classes'},
+            {'color': AppColors.color3, 'icon': Iconsax.book, 'text': 'Free Course'},
           ]),
         ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: _buildCategoryItems([
-            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.building, 'text': 'Book Store'},
-            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.play, 'text': 'Live Course'},
-            {'color': Color.fromARGB(255, 65, 65, 65), 'icon': Iconsax.cup, 'text': 'Leaderboard'},
+            {'color': AppColors.color4, 'icon': Iconsax.building, 'text': 'Book Store'},
+            {'color': AppColors.color5, 'icon': Iconsax.play, 'text': 'Live Course'},
+            {'color': AppColors.color6, 'icon': Iconsax.cup, 'text': 'Leaderboard'},
           ]),
         ),
       ],
@@ -531,14 +686,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Icon(item['icon'], color: Colors.white, size: 35),
+                child: Icon(item['icon'], color: AppColors.primaryColor, size: 35),
               ),
             ),
             const SizedBox(height: 5),
             Text(
               item['text'],
               style: const TextStyle(
-                color: Color.fromARGB(255, 255, 255, 255),
+                color: AppColors.primaryColor,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
@@ -589,6 +744,3946 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 
-class advisor can upload assignments and notes and students can see that
+lib\screens\Outpass\outpass_screen.dart:
 
-if cse 1st year advisor send a assignment, it only shows to respective students
+import 'package:first_app/color/Colors.dart';
+import 'package:first_app/screens/Outpass/Student/archived_op.dart';
+import 'package:first_app/screens/Outpass/Student/pending_op.dart';
+import 'package:first_app/screens/Outpass/Student/request_op.dart';
+import 'package:flutter/material.dart';
+
+class OutpassScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: AppColors.secondaryColor),
+        title: Text(
+          'Outpass',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: Colors.white
+          ),
+        ),
+        backgroundColor: AppColors.primaryColor,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> RequestOpScreen()));
+              },
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.color1,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
+                ),
+                child: Center(
+                  child: Text(
+                    'Request Outpass',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> PendingOutpassScreen()));
+              },
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.color3,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
+                ),
+                child: Center(
+                  child: Text(
+                    'Pending Request',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ArchivedOutPasses()));
+              },
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.color5,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 2),
+                        blurRadius: 6,
+                      ),
+                    ],
+                ),
+                child: Center(
+                  child: Text(
+                    'Archived Outpasses',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+lib\screens\Outpass\Student\request_op.dart:
+import 'package:first_app/color/Colors.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+class RequestOpScreen extends StatefulWidget {
+  @override
+  _RequestOpScreenState createState() => _RequestOpScreenState();
+}
+
+class _RequestOpScreenState extends State<RequestOpScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _returnDateController = TextEditingController();
+  final TextEditingController _returnTimeController = TextEditingController();
+  final TextEditingController _reasonController = TextEditingController();
+
+  String? _selectedCategory;
+  String? _name;
+  String? _sin;
+  String? _year;
+  String? _department;
+
+  // Mapping of department names to their short forms
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserDetails();
+  }
+
+  void _fetchUserDetails() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        setState(() {
+          _name = "${userDoc['firstName']} ${userDoc['lastName']}";
+          _sin = userDoc['sin'];
+          _year = userDoc['year'];
+          _department = userDoc['department'];
+        });
+      }
+    }
+  }
+
+  void _selectDate(BuildContext context, TextEditingController controller) async {
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (selectedDate != null) {
+      setState(() {
+        controller.text = "${selectedDate.toLocal()}".split(' ')[0];
+      });
+    }
+  }
+
+  void _selectTime(BuildContext context, TextEditingController controller) async {
+    TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (selectedTime != null) {
+      setState(() {
+        controller.text = selectedTime.format(context);
+      });
+    }
+  }
+
+  void _submitRequest() async {
+    if (_formKey.currentState!.validate()) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('outpass_requests').add({
+          'name': _name,
+          'sin': _sin,
+          'year': _year,
+          'department' : _department,
+          'reason': _reasonController.text,
+          'date': _dateController.text,
+          'time': _timeController.text,
+          'day_scholar_or_hosteller': _selectedCategory,
+          'user_id': user.uid,
+          'class_advisor_status': 'Pending',
+          'hod_status': 'Pending',
+          'principal_status': 'Pending',
+          'qr_code': null,
+          'created_at': FieldValue.serverTimestamp(),
+          if (_selectedCategory == 'Hosteller') ...{
+            'return_date': _returnDateController.text,
+            'return_time': _returnTimeController.text,
+          },
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Outpass request submitted successfully!')),
+
+        );
+
+        _formKey.currentState!.reset();
+        _dateController.clear();
+        _timeController.clear();
+        _returnDateController.clear();
+        _returnTimeController.clear();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          Stack(
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.height * 0.2, // Adjust the height as needed
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/sscet1.jpg'), // Your image here
+                    fit: BoxFit.cover,
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withOpacity(0.5),
+                      Colors.transparent, // Make it transparent at the top
+                    ],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 40,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(2.0, 2.0),
+                            blurRadius: 3.0,
+                            color: Color.fromRGBO(102, 73, 239, 1),
+                          ),
+                        ]
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    Text(
+                      'Request Outpass',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(2.0, 2.0),
+                            blurRadius: 3.0,
+                            color: Color.fromRGBO(102, 73, 239, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 24),
+                    _buildDetailContainer('Name', '$_name'),
+                    _buildDetailContainer('SIN Number', '$_sin'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildDetailContainerDoubleSmall('Year', '$_year'),
+                        _buildDetailContainerDoubleBig('Department', departmentShortForms[_department ?? ''] ?? '$_department')
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    TextFormField(
+                      controller: _reasonController,
+                      decoration: InputDecoration(
+                        labelText: 'Reason for Outpass',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                      validator: (value) => value!.isEmpty ? 'Please enter a reason' : null,
+                    ),
+                    SizedBox(height: 16),
+                    TextFormField(
+                      controller: _dateController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Date of Leaving',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      onTap: () => _selectDate(context, _dateController),
+                    ),
+                    SizedBox(height: 16),
+                    TextFormField(
+                      controller: _timeController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Time of Leaving',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.access_time),
+                      ),
+                      onTap: () => _selectTime(context, _timeController),
+                    ),
+                    SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Day Scholar or Hosteller',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem(value: 'Day Scholar', child: Text('Day Scholar')),
+                        DropdownMenuItem(value: 'Hosteller', child: Text('Hosteller')),
+                      ],
+                      onChanged: (value) => setState(() => _selectedCategory = value),
+                    ),
+                    if (_selectedCategory == 'Hosteller') ...[
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _returnDateController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'Return Date',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.calendar_today),
+                        ),
+                        onTap: () => _selectDate(context, _returnDateController),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _returnTimeController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'Return Time',
+                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.access_time),
+                        ),
+                        onTap: () => _selectTime(context, _returnTimeController),
+                      ),
+                    ],
+                    SizedBox(height: 24),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _submitRequest,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          padding: EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                        ),
+                        child: Text(
+                          'Submit Request',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailContainer(String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.color2,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailContainerDoubleSmall(String label, String value) {
+    return Container(
+      width: 182,
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.color2,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(width: 10),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailContainerDoubleBig(String label, String value) {
+    return Container(
+      width: 182,
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.color2,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(width: 10),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+lib\screens\Outpass\Student\pending_op.dart:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_app/color/Colors.dart';
+import 'package:first_app/screens/Outpass/Student/check_op_status.dart';
+import 'package:flutter/material.dart';
+
+class PendingOutpassScreen extends StatelessWidget {
+  // Mapping of department names to their short forms
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Pending Outpasses', style: TextStyle(color: Colors.white),),
+        backgroundColor: AppColors.primaryColor,
+        iconTheme: IconThemeData(color: AppColors.secondaryColor),
+      ),
+      backgroundColor: Colors.white,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('outpass_requests').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (snapshot.data == null || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No pending outpasses at the moment.'));
+          }
+
+          final outpasses = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: outpasses.length,
+            itemBuilder: (context, index) {
+              final outpass = outpasses[index].data() as Map<String, dynamic>;
+              final docId = outpasses[index].id; // Retrieve the document ID
+              final isHosteller = outpass['day_scholar_or_hosteller'] == 'Hosteller';
+
+              // Get the department short form
+              final departmentShortForm = departmentShortForms[outpass['department']] ?? outpass['department'];
+
+              return Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.color4,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    width: MediaQuery.of(context).size.width - 16,
+                    margin: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Outpass ID: $docId${outpass['sin']}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Name: ${outpass['name']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Year: ${outpass['year']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Department: $departmentShortForm', // Use short form
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'SIN: ${outpass['sin']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Time: ${outpass['time']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: 12,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(AppColors.primaryColor),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context, MaterialPageRoute(builder: (context)=> CheckOpStatus(requestId: (docId),)));
+                      },
+                      child: Text(
+                        'Check Status',
+                        style: TextStyle(
+                          color: Colors.white
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'H',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (!isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'D',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+lib\screens\Outpass\Student\check_op_status.dart:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_app/color/Colors.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
+class CheckOpStatus extends StatefulWidget {
+  final String requestId;
+
+  const CheckOpStatus({
+    Key? key,
+    required this.requestId,
+  }) : super(key: key);
+
+  @override
+  _CheckOpStatusState createState() => _CheckOpStatusState();
+}
+
+class _CheckOpStatusState extends State<CheckOpStatus> {
+  late Future<DocumentSnapshot> _requestDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshData();
+  }
+
+  void _refreshData() {
+    setState(() {
+      _requestDetails = FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(widget.requestId)
+          .get();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: AppColors.primaryColor,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.secondaryColor),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Outpass Status',
+          style: TextStyle(
+            color: Color.fromARGB(255, 255, 255, 255),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.secondaryColor),
+            onPressed: _refreshData, // Call the refresh function
+          ),
+        ],
+        elevation: 0,
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: _requestDetails,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('No data available'));
+          } else {
+            var data = snapshot.data!;
+            String reason = data['reason'] ?? 'N/A';
+            DateTime? date =
+                (data['date'] != null) ? DateTime.parse(data['date']) : null;
+            String? time = data['time'];
+            String? type = data['day_scholar_or_hosteller'];
+
+            bool allStatusesApproved = data['class_advisor_status'] == 'Approved' &&
+                data['hod_status'] == 'Approved' &&
+                data['principal_status'] == 'Approved';
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailContainer('Reason for Leaving', reason),
+                  _buildDetailContainer(
+                      'Date of Leaving',
+                      date != null
+                          ? DateFormat('yyyy-MM-dd').format(date)
+                          : 'N/A'),
+                  _buildDetailContainer('Time of Leaving', time ?? 'N/A'),
+                  _buildDetailContainer('Day Scholar or Hosteller', type ?? 'N/A'),
+                  const SizedBox(height: 8),
+                  Divider(),
+                  const SizedBox(height: 8),
+                  _buildStatusContainer(
+                      'Request Submitted', 'Approved'),
+                  _buildStatusContainer('Waiting for Class Advisor Approval',
+                      data['class_advisor_status']),
+                  _buildStatusContainer('Waiting for HOD Approval',
+                      data['hod_status']),
+                  _buildStatusContainer('Waiting for Principal Approval',
+                      data['principal_status']),
+                  const SizedBox(height: 16),
+                  if (allStatusesApproved)
+                    Center(
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(
+                              Color.fromRGBO(102, 73, 239, 1)),
+                        ),
+                        onPressed: () {
+                          _showQrCodeDialog(context, widget.requestId);
+                        },
+                        child: Text(
+                          'Show QR Code',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void _showQrCodeDialog(BuildContext context, String docId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: Text('QR CODE'),
+        content: SizedBox(
+          width: 200,
+          height: 200,
+          child: Center(
+            child: QrImageView(
+              data: docId,
+              version: QrVersions.auto,
+              size: 200.0,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Close',
+              style: TextStyle(color: Colors.black),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusContainer(String status, String statusValue) {
+    IconData iconData;
+    Color iconColor;
+
+    if (statusValue == 'Pending') {
+      iconData = Icons.remove_circle;
+      iconColor = Colors.grey;
+    } else if (statusValue == 'Approved') {
+      iconData = Icons.check_circle;
+      iconColor = Colors.green;
+    } else if (statusValue == 'Declined') {
+      iconData = Icons.cancel_outlined;
+      iconColor = Colors.red;
+    } else {
+      iconData = Icons.remove;
+      iconColor = Colors.grey;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.color4,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            status,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Icon(
+            iconData,
+            color: iconColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailContainer(String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: AppColors.color4,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+lib\screens\Outpass\Student\archived_op.dart:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:first_app/color/Colors.dart';
+import 'package:flutter/material.dart';
+
+class ArchivedOutPasses extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Archived Outpasses'),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+        ),
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Text('Please log in to view your archived outpasses.'),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Archived Outpasses'),
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+        iconTheme: IconThemeData(color: AppColors.secondaryColor),
+      ),
+      backgroundColor: Colors.white,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('archived_outpass')
+            .where('user_id', isEqualTo: currentUser.uid) // Filter by user ID
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (snapshot.data == null || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No archived outpasses at the moment.'));
+          }
+
+          final outpasses = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: outpasses.length,
+            itemBuilder: (context, index) {
+              final outpass = outpasses[index].data() as Map<String, dynamic>;
+              final docId = outpasses[index].id; // Retrieve the document ID
+              final isHosteller = outpass['day_scholar_or_hosteller'] == 'Hosteller';
+
+              // Get the security status, or display 'Declined' if it's missing
+              String securityStatus = outpass['security_status'] ?? 'Declined';
+
+              return Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.color3,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    width: MediaQuery.of(context).size.width - 16,
+                    margin: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Outpass ID: $docId${outpass['sin']}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Name: ${outpass['name']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Reason: ${outpass['reason']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Date: ${outpass['date']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Time: ${outpass['time']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: 20,
+                    child: Container(
+                      width: 100,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        securityStatus,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2,
+                        child: Text(
+                          'H',
+                          style: TextStyle(
+                            fontSize: 100,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (!isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2,
+                        child: Text(
+                          'D',
+                          style: TextStyle(
+                            fontSize: 100,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+lib\screens\Outpass\ClassAdvisor\ca_approvel_page.dart:
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'ca_req_details.dart';
+
+class ClassAdvisorApprovalScreen extends StatelessWidget {
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          'Class Advisor Approvals',
+          style: TextStyle(
+            fontWeight: FontWeight.w900
+          ),
+        ),
+        backgroundColor: Colors.white,
+      ),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('outpass_requests')
+            .where('class_advisor_status', isEqualTo: 'Pending')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          final outpasses = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: outpasses.length,
+            itemBuilder: (context, index) {
+              final outpass = outpasses[index].data();
+              final docId = outpasses[index].id; // Retrieve the document ID
+              final isHosteller = outpass['day_scholar_or_hosteller'] == 'Hosteller';
+              final departmentShortForm = departmentShortForms[outpass['department']] ?? outpass['department'];
+
+              return Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(102, 73, 239, 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    width: MediaQuery.of(context).size.width - 16,
+                    margin: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Outpass ID: $docId${outpass['sin']}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Name: ${outpass['name']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Year: ${outpass['year']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Department: $departmentShortForm', // Use short form
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'SIN: ${outpass['sin']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Time: ${outpass['time']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: 12,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(102, 73, 239, 1)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context, MaterialPageRoute(builder: (context)=> CaRequestDetailsScreen(requestId: docId)));
+                      },
+                      child: Text(
+                        'Review',
+                        style: TextStyle(
+                          color: Colors.white
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'H',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (!isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'D',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+lib\screens\Outpass\ClassAdvisor\ca_req_details.dart:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class CaRequestDetailsScreen extends StatelessWidget {
+  final String requestId;
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  CaRequestDetailsScreen({required this.requestId});
+
+  Future<DocumentSnapshot> _fetchRequestDetails() async {
+    return await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .get();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Request Details',
+          style: TextStyle(color: Colors.black),
+        ),
+        elevation: 0,
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: _fetchRequestDetails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('No data available'));
+          } else {
+            var data = snapshot.data!;
+            String name = data['name'] ?? 'N/A';
+            String sin = data['sin'] ?? 'N/A';
+            String year = data['year'] ?? 'N/A';
+            String reason = data['reason'] ?? 'N/A';
+            DateTime? date = (data['date'] != null) ? DateTime.parse(data['date']) : null;
+            String? time = data['time'];
+            String? type = data['day_scholar_or_hosteller'];
+            final departmentShortForm = departmentShortForms[data['department']] ?? data['department'];
+
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailContainer('Name of The Student', name),
+                    _buildDetailContainer('SIN Number', sin),
+                    _buildDetailContainer('Year & Department', '$year & $departmentShortForm'),
+                    _buildDetailContainer('Reason for Leaving', reason),
+                    _buildDetailContainer('Date of Leaving', date != null ? DateFormat('yyyy-MM-dd').format(date) : 'N/A'),
+                    _buildDetailContainer('Time of Leaving', time ?? 'N/A'),
+                    _buildDetailContainer('Day Scholar or Hosteller', type ?? 'N/A'),
+                    const SizedBox(height: 8),
+                    Divider(),
+                    const SizedBox(height: 8),
+                    _buildStatusContainer('Request Submitted', 'Approved'),
+                    _buildStatusContainer('Waiting for Class Advisor Approval', data['class_advisor_status']),
+                    _buildStatusContainer('Waiting for HOD Approval', data['hod_status']),
+                    _buildStatusContainer('Waiting for Principal Approval', data['principal_status']),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            _updateRequestStatus(context, 'Approved');
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          child: Text('Accept', style: TextStyle(color: Colors.white)),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            _updateRequestStatus(context, 'Declined');
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          child: Text('Decline', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void _updateRequestStatus(BuildContext context, String status) async {
+    FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .update({
+      'class_advisor_status': status,
+      if (status == 'Declined') 'hod_status': 'Declined',
+      if (status == 'Declined') 'principal_status': 'Declined',
+    }).then((_) async {
+      if (status == 'Declined') {
+        await _moveToArchived(requestId);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request Declined and Archived')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request $status')));
+      }
+
+      Navigator.pop(context);
+    });
+  }
+
+  Future<void> _moveToArchived(String requestId) async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .get();
+
+    if (doc.exists) {
+      await FirebaseFirestore.instance
+          .collection('archived_requests')
+          .doc(requestId)
+          .set(doc.data() as Map<String, dynamic>);
+
+      await FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(requestId)
+          .delete();
+    }
+  }
+
+  Widget _buildStatusContainer(String status, String statusValue) {
+    IconData iconData;
+    Color iconColor;
+
+    if (statusValue == 'Pending') {
+      iconData = Icons.remove_circle;
+      iconColor = Colors.grey;
+    } else if (statusValue == 'Approved') {
+      iconData = Icons.check_circle;
+      iconColor = Colors.green;
+    } else if (statusValue == 'Declined') {
+      iconData = Icons.cancel_outlined;
+      iconColor = Colors.red;
+    } else {
+      iconData = Icons.remove;
+      iconColor = Colors.grey;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(102, 73, 239, 0.1),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 2, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(status, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Icon(iconData, color: iconColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailContainer(String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(102, 73, 239, 0.1),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 2, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value, style: TextStyle(fontSize: 16)),
+        ],
+      ),
+    );
+  }
+}
+
+lib\screens\Outpass\HOD\hod_approvel_page.dart:
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_app/screens/Outpass/HOD/hod_re_details.dart';
+import 'package:flutter/material.dart';
+
+class HODApprovalScreen extends StatelessWidget {
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          'HOD Approvals',
+          style: TextStyle(
+            fontWeight: FontWeight.w900
+          ),
+        ),
+        backgroundColor: Colors.white,
+      ),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('outpass_requests')
+            .where('class_advisor_status', isEqualTo: 'Approved')
+            .where('hod_status', isEqualTo: 'Pending')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          final outpasses = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: outpasses.length,
+            itemBuilder: (context, index) {
+              final outpass = outpasses[index].data();
+              final docId = outpasses[index].id; // Retrieve the document ID
+              final isHosteller = outpass['day_scholar_or_hosteller'] == 'Hosteller';
+              final departmentShortForm = departmentShortForms[outpass['department']] ?? outpass['department'];
+
+              return Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(102, 73, 239, 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    width: MediaQuery.of(context).size.width - 16,
+                    margin: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Outpass ID: $docId${outpass['sin']}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Name: ${outpass['name']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Year: ${outpass['year']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Department: $departmentShortForm', // Use short form
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'SIN: ${outpass['sin']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Time: ${outpass['time']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: 12,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(102, 73, 239, 1)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context, MaterialPageRoute(builder: (context)=> HodRequestDetailsScreen(requestId: docId)));
+                      },
+                      child: Text(
+                        'Review',
+                        style: TextStyle(
+                          color: Colors.white
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'H',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (!isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'D',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromRGBO(102, 73, 239, 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+lib\screens\Outpass\HOD\hod_re_details.dart:
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class HodRequestDetailsScreen extends StatelessWidget {
+  final String requestId;
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  HodRequestDetailsScreen({required this.requestId});
+
+  Future<DocumentSnapshot> _fetchRequestDetails() async {
+    return await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .get();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Request Details',
+          style: TextStyle(color: Colors.black),
+        ),
+        elevation: 0,
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: _fetchRequestDetails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('No data available'));
+          } else {
+            var data = snapshot.data!;
+            String name = data['name'] ?? 'N/A';
+            String sin = data['sin'] ?? 'N/A';
+            String year = data['year'] ?? 'N/A';
+            String reason = data['reason'] ?? 'N/A';
+            DateTime? date = (data['date'] != null) ? DateTime.parse(data['date']) : null;
+            String? time = data['time'];
+            String? type = data['day_scholar_or_hosteller'];
+            final departmentShortForm = departmentShortForms[data['department']] ?? data['department'];
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailContainer('Name of The Student', name),
+                  _buildDetailContainer('SIN Number', sin),
+                  _buildDetailContainer('Year & Department', '$year & $departmentShortForm'),
+                  _buildDetailContainer('Reason for Leaving', reason),
+                  _buildDetailContainer('Date of Leaving', date != null ? DateFormat('yyyy-MM-dd').format(date) : 'N/A'),
+                  _buildDetailContainer('Time of Leaving', time ?? 'N/A'),
+                  _buildDetailContainer('Day Scholar or Hosteller', type ?? 'N/A'),
+                  const SizedBox(height: 8),
+                  Divider(),
+                  const SizedBox(height: 8),
+                  _buildStatusContainer('Request Submitted', 'Approved'),
+                  _buildStatusContainer('Waiting for Class Advisor Approval', data['class_advisor_status']),
+                  _buildStatusContainer('Waiting for HOD Approval', data['hod_status']),
+                  _buildStatusContainer('Waiting for Principal Approval', data['principal_status']),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          _updateRequestStatus(context, 'Approved');
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: Text('Accept', style: TextStyle(color: Colors.white)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _updateRequestStatus(context, 'Declined');
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: Text('Decline', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void _updateRequestStatus(BuildContext context, String status) async {
+    FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .update({
+      'hod_status': status,
+      if (status == 'Declined') 'principal_status': 'Declined',
+    }).then((_) async {
+      if (status == 'Declined') {
+        await _moveToArchived(requestId);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request Declined and Archived')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request $status')));
+      }
+
+      Navigator.pop(context);
+    });
+  }
+
+  Future<void> _moveToArchived(String requestId) async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .get();
+
+    if (doc.exists) {
+      await FirebaseFirestore.instance
+          .collection('archived_requests')
+          .doc(requestId)
+          .set(doc.data() as Map<String, dynamic>);
+
+      await FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(requestId)
+          .delete();
+    }
+  }
+
+  Widget _buildStatusContainer(String status, String statusValue) {
+    IconData iconData;
+    Color iconColor;
+
+    if (statusValue == 'Pending') {
+      iconData = Icons.remove_circle;
+      iconColor = Colors.grey;
+    } else if (statusValue == 'Approved') {
+      iconData = Icons.check_circle;
+      iconColor = Colors.green;
+    } else if (statusValue == 'Declined') {
+      iconData = Icons.cancel_outlined;
+      iconColor = Colors.red;
+    } else {
+      iconData = Icons.remove;
+      iconColor = Colors.grey;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(102, 73, 239, 0.1),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 2, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(status, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Icon(iconData, color: iconColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailContainer(String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(102, 73, 239, 0.1),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 2, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value, style: TextStyle(fontSize: 16)),
+        ],
+      ),
+    );
+  }
+}
+
+lib\screens\Outpass\Principal\p_approvel_page.dart:
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:first_app/screens/Outpass/Principal/p_req_details.dart';
+import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
+class PrincipalApprovalScreen extends StatefulWidget {
+  
+
+  @override
+  _PrincipalApprovalScreenState createState() =>
+      _PrincipalApprovalScreenState();
+}
+
+class _PrincipalApprovalScreenState extends State<PrincipalApprovalScreen> {
+  String? qrCodeData;
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          'Principal Approvals',
+          style: TextStyle(
+            fontWeight: FontWeight.w900
+          ),
+          ),
+          backgroundColor: Colors.white,
+        ),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('outpass_requests')
+            .where('hod_status', isEqualTo: 'Approved')
+            .where('principal_status', isEqualTo: 'Pending')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          final outpasses = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: outpasses.length,
+            itemBuilder: (context, index) {
+              final outpass = outpasses[index].data();
+              final docId = outpasses[index].id; // Retrieve the document ID
+              final isHosteller = outpass['day_scholar_or_hosteller'] == 'Hosteller';
+              final departmentShortForm = departmentShortForms[outpass['department']] ?? outpass['department'];
+
+              return Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(102, 73, 239, 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    width: MediaQuery.of(context).size.width - 16,
+                    margin: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Outpass ID: $docId${outpass['sin']}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Name: ${outpass['name']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Year: ${outpass['year']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Department: $departmentShortForm', // Use short form
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'SIN: ${outpass['sin']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Time: ${outpass['time']}',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: 12,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(102, 73, 239, 1)),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context, MaterialPageRoute(builder: (context)=> PrincipalRequestDetailsScreen(requestId: docId)));
+                      },
+                      child: Text(
+                        'Review',
+                        style: TextStyle(
+                          color: Colors.white
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'H',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (!isHosteller)
+                    Positioned(
+                      right: 16,
+                      top: 16,
+                      child: Opacity(
+                        opacity: 0.2, // Adjust opacity for the watermark
+                        child: Text(
+                          'D',
+                          style: TextStyle(
+                            fontSize: 100, // Large size for the watermark
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+      // floatingActionButton: qrCodeData != null
+      //     ? FloatingActionButton(
+      //         onPressed: () {},
+      //         child: QrImageView(
+      //           data: qrCodeData!,
+      //           size: 200.0,
+      //           foregroundColor: Colors.black,
+      //         ),
+      //       )
+      //     : null,
+    );
+  }
+}
+
+
+lib\screens\Outpass\Principal\p_req_details.dart:
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class PrincipalRequestDetailsScreen extends StatelessWidget {
+  final String requestId;
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  PrincipalRequestDetailsScreen({required this.requestId});
+
+  Future<DocumentSnapshot> _fetchRequestDetails() async {
+    return await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .get();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Request Details',
+          style: TextStyle(color: Colors.black),
+        ),
+        elevation: 0,
+      ),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: _fetchRequestDetails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('No data available'));
+          } else {
+            var data = snapshot.data!;
+            String name = data['name'] ?? 'N/A';
+            String sin = data['sin'] ?? 'N/A';
+            String year = data['year'] ?? 'N/A';
+            String reason = data['reason'] ?? 'N/A';
+            DateTime? date = (data['date'] != null) ? DateTime.parse(data['date']) : null;
+            String? time = data['time'];
+            String? type = data['day_scholar_or_hosteller'];
+            final departmentShortForm = departmentShortForms[data['department']] ?? data['department'];
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   _buildDetailContainer('Name of The Student', name),
+                  _buildDetailContainer('SIN Number', sin),
+                  _buildDetailContainer('Year & Department', '$year & $departmentShortForm'),
+                  _buildDetailContainer('Reason for Leaving', reason),
+                  _buildDetailContainer('Date of Leaving', date != null ? DateFormat('yyyy-MM-dd').format(date) : 'N/A'),
+                  _buildDetailContainer('Time of Leaving', time ?? 'N/A'),
+                  _buildDetailContainer('Day Scholar or Hosteller', type ?? 'N/A'),
+                  const SizedBox(height: 16),
+                  _buildStatusContainer('Request Submitted', 'Approved'),
+                  _buildStatusContainer('Waiting for Class Advisor Approval', data['class_advisor_status']),
+                  _buildStatusContainer('Waiting for HOD Approval', data['hod_status']),
+                  _buildStatusContainer('Waiting for Principal Approval', data['principal_status']),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          _updateRequestStatus(context, 'Approved');
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: Text('Accept', style: TextStyle(color: Colors.white)),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _updateRequestStatus(context, 'Declined');
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: Text('Decline', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void _updateRequestStatus(BuildContext context, String status) async {
+    FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .update({
+      'principal_status': status,
+      if (status == 'Declined') 'principal_status': 'Declined',
+    }).then((_) async {
+      if (status == 'Declined') {
+        await _moveToArchived(requestId);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request Declined and Archived')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request $status')));
+      }
+
+      Navigator.pop(context);
+    });
+  }
+
+  Future<void> _moveToArchived(String requestId) async {
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .get();
+
+    if (doc.exists) {
+      await FirebaseFirestore.instance
+          .collection('archived_requests')
+          .doc(requestId)
+          .set(doc.data() as Map<String, dynamic>);
+
+      await FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(requestId)
+          .delete();
+    }
+  }
+
+  Widget _buildStatusContainer(String status, String statusValue) {
+    IconData iconData;
+    Color iconColor;
+
+    if (statusValue == 'Pending') {
+      iconData = Icons.remove_circle;
+      iconColor = Colors.grey;
+    } else if (statusValue == 'Approved') {
+      iconData = Icons.check_circle;
+      iconColor = Colors.green;
+    } else if (statusValue == 'Declined') {
+      iconData = Icons.cancel_outlined;
+      iconColor = Colors.red;
+    } else {
+      iconData = Icons.remove;
+      iconColor = Colors.grey;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(102, 73, 239, 0.1),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 2, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(status, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Icon(iconData, color: iconColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailContainer(String label, String value) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(102, 73, 239, 0.1),
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 2, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(value, style: TextStyle(fontSize: 16)),
+        ],
+      ),
+    );
+  }
+}
+
+
+lib\screens\Outpass\Security\security_scan_page.dart:
+import 'package:first_app/screens/Outpass/Security/security_verification.dart';
+import 'package:flutter/material.dart'; 
+import 'package:barcode_scan2/barcode_scan2.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class SecurityScanPage extends StatefulWidget {
+  @override
+  _SecurityScanPageState createState() => _SecurityScanPageState();
+}
+
+class _SecurityScanPageState extends State<SecurityScanPage> {
+  Future<void> _scanQRCode() async {
+    try {
+      // Use barcode_scan2 to scan QR code
+      var scanResult = await BarcodeScanner.scan();
+      String? scanData = scanResult.rawContent;
+
+      if (scanData == null || scanData.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No QR code detected. Please try again.')),
+        );
+        return;
+      }
+
+      // Fetch document from Firestore using scanned QR code
+      final docRef = FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(scanData);
+      final doc = await docRef.get();
+
+      if (doc.exists) {
+        // Check if the QR code is approved
+        if (doc['principal_status'] == 'Approved') {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Outpass Verified')),
+          );
+
+          // Navigate to the verification page with the requestId (QR code)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SecurityVerificationPage(requestId: scanData),
+            ),
+          );
+        } else {
+          // Show message if outpass is not approved
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Invalid or Unapproved Outpass')),
+          );
+        }
+      } else {
+        // Show message if no document exists for the QR code
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Outpass not found in the database')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error scanning QR code: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          'Security Verification',
+          style: TextStyle(
+            fontWeight: FontWeight.w900
+          ),
+        ),
+        backgroundColor: Colors.white,
+      ),
+      body: Center(
+        child: Column(
+          children: [
+            Image.asset(
+              'assets/images/qr-code.gif',
+              width: 300,
+            ),
+            SizedBox(height: 10,),
+            ElevatedButton(
+              onPressed: _scanQRCode,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              ),
+              child: Text(
+                'Scan QR Code',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+lib\screens\Outpass\Security\security_verification.dart:
+
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class SecurityVerificationPage extends StatefulWidget {
+  final String requestId;
+
+  const SecurityVerificationPage({Key? key, required this.requestId})
+      : super(key: key);
+
+  @override
+  _SecurityVerificationPageState createState() =>
+      _SecurityVerificationPageState();
+}
+
+class _SecurityVerificationPageState extends State<SecurityVerificationPage> {
+  bool _isNameVerified = false;
+  bool _isSINVerified = false;
+  String? _name;
+  String? _sin;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRequestDetails(); // Fetch user details on page load
+  }
+
+  Future<void> _fetchRequestDetails() async {
+    // Fetch outpass request data from Firestore
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(widget.requestId)
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        // Store the user's name and SIN number
+        _name = doc['name'];
+        _sin = doc['sin'];
+      });
+    }
+  }
+
+  Future<void> _moveToArchived(String requestId) async {
+    // Fetch the document from the "outpass_requests" collection
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(requestId)
+        .get();
+
+    if (doc.exists) {
+      // Move the document to the "archived_outpass" collection
+      await FirebaseFirestore.instance
+          .collection('archived_outpass')
+          .doc(requestId)
+          .set(doc.data() as Map<String, dynamic>);
+
+      // Delete the document from the "outpass_requests" collection
+      await FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(requestId)
+          .delete();
+    }
+  }
+
+  // Show confirmation dialog for exit and mark checkboxes as checked
+  void _showExitConfirmation() {
+    setState(() {
+      _isNameVerified = true; // Automatically check the "Name on ID Card"
+      _isSINVerified = true;  // Automatically check the "SIN Number on ID Card"
+    });
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text('Exit Confirmation'),
+          content: Text('Are you sure you want to mark this outpass as "Exited"?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _markExit();
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show confirmation dialog for decline
+  void _showDeclineConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text('Decline Confirmation'),
+          content: Text('Are you sure you want to decline this outpass request?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _submitVerification(false); // Decline action
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _submitVerification(bool isVerified) async {
+    // Logic for verification
+    if (isVerified) {
+      // If both details are verified, approve the outpass and remove QR code
+      await FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(widget.requestId)
+          .update({
+        'security_status': 'Verified',
+        'qr_code': null, // Remove QR code after verification
+      });
+
+      // Move to archived collection
+      await _moveToArchived(widget.requestId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Outpass verified successfully and archived.')),
+      );
+    } else {
+      // If declined, show a message and decline the outpass
+      await FirebaseFirestore.instance
+          .collection('outpass_requests')
+          .doc(widget.requestId)
+          .update({
+        'security_status': 'Declined',
+      });
+
+      // Move to archived collection as declined
+      await _moveToArchived(widget.requestId);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Outpass declined and archived.')),
+      );
+    }
+
+    Navigator.pop(context); // Close the verification screen
+  }
+
+  void _markExit() async {
+    // Mark the outpass as Exited and move it to archived collection
+    await FirebaseFirestore.instance
+        .collection('outpass_requests')
+        .doc(widget.requestId)
+        .update({
+      'security_status': 'Exited', // Mark as exited
+    });
+
+    // Move to archived collection as Exited
+    await _moveToArchived(widget.requestId);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Outpass marked as Exited and archived.')),
+    );
+
+    Navigator.pop(context); // Close the verification screen after exit
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          'Security Verification',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        backgroundColor: Colors.white,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (_name != null && _sin != null) ...[
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  _buildDetailContainer('Name of The Student', _name!),
+                  SizedBox(height: 8),
+                  _buildDetailContainer('SIN Number', _sin!),
+                ],
+              ),
+              SizedBox(height: 8),
+              Divider(),
+              SizedBox(height: 8),
+              // Checkboxes for verification
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CheckboxListTile(
+                  title: Text('Name on ID Card'),
+                  value: _isNameVerified,
+                  onChanged: (value) {
+                    setState(() {
+                      _isNameVerified = value!;
+                    });
+                  },
+                ),
+              ),
+              SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CheckboxListTile(
+                  title: Text('SIN Number on ID Card'),
+                  value: _isSINVerified,
+                  onChanged: (value) {
+                    setState(() {
+                      _isSINVerified = value!;
+                    });
+                  },
+                ),
+              ),
+              SizedBox(height: 16),
+              // Submit buttons
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _showExitConfirmation, // Show confirmation dialog for exit
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        minimumSize: Size(double.infinity, 50),
+                      ),
+                      child: Text(
+                        'EXIT',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(height: 8), // Add some space between buttons
+                    ElevatedButton(
+                      onPressed: _showDeclineConfirmation, // Show confirmation dialog for decline
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        minimumSize: Size(double.infinity, 50),
+                      ),
+                      child: Text(
+                        'DECLINE',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _buildDetailContainer(String label, String value) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 8.0),
+    padding: const EdgeInsets.all(16.0),
+    decoration: BoxDecoration(
+      color: Colors.grey[200],
+      borderRadius: BorderRadius.circular(8.0),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.2),
+          spreadRadius: 2,
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16),
+        ),
+      ],
+    ),
+  );
+}
+
+
+lib\screens\Login\signup_screen.dart:
+
+import 'package:first_app/screens/Login/login_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class SignupScreen extends StatefulWidget {
+  @override
+  State<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController sinController = TextEditingController(); // SIN controller
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmpasswordController = TextEditingController();
+  final TextEditingController firstnameController = TextEditingController();
+  final TextEditingController lastnameController = TextEditingController();
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  String _selectedRole = 'Student'; // Default role
+  List<String> roles = ['Student', 'Class Advisor', 'HOD', 'Principal', 'Security'];
+
+  List<String> years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+
+  List<String> departments = [
+    'Mechanical Engineering',
+    'Computer Science & Engineering',
+    'Electronics & Communication',
+    'Agriculture Engineering',
+    'Biomedical Engineering',
+    'Artificial Intelligence & Data Science',
+    'Information Technology',
+    'Computer Science Engineering - Cyber Security',
+    'Science & Humanities',
+  ];
+
+  // Mapping full department names to their short forms
+  final Map<String, String> departmentShortForms = {
+    'Mechanical Engineering': 'ME',
+    'Computer Science & Engineering': 'CSE',
+    'Electronics & Communication': 'ECE',
+    'Agriculture Engineering': 'AE',
+    'Biomedical Engineering': 'BME',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Information Technology': 'IT',
+    'Computer Science Engineering - Cyber Security': 'CSE-CS',
+    'Science & Humanities': 'S&H',
+  };
+
+  String? _selectedYear;
+  String? _selectedDepartment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.only(top: 50),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Center(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/signup.png',
+                        height: 200,
+                        width: 200,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Please Fill Your Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      TextFormField(
+                        controller: firstnameController,
+                        decoration: InputDecoration(
+                          labelText: 'First Name',
+                          labelStyle: TextStyle(color: Colors.black),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'First Name required';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: lastnameController,
+                        decoration: InputDecoration(
+                          labelText: 'Last Name',
+                          labelStyle: TextStyle(color: Colors.black),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Last Name required';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: emailController,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          labelStyle: TextStyle(color: Colors.black),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          }
+                          final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                          if (!emailRegex.hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      if (_selectedRole == 'Student') ...[
+                        TextFormField(
+                          controller: sinController, // SIN Number only for students
+                          decoration: InputDecoration(
+                            labelText: 'SIN Number',
+                            labelStyle: TextStyle(color: Colors.black),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Enter SIN Number';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: TextStyle(color: Colors.black),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: confirmpasswordController,
+                        obscureText: _obscureConfirmPassword,
+                        decoration: InputDecoration(
+                          labelText: 'Confirm Password',
+                          labelStyle: TextStyle(color: Colors.black),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Enter Your Password Again';
+                          }
+                          if (value != passwordController.text) {
+                            return 'Password does not match';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        value: _selectedRole,
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedRole = newValue!;
+                            _selectedYear = null;
+                            _selectedDepartment = null;
+                          });
+                        },
+                        items: roles.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        decoration: InputDecoration(
+                          labelText: 'Role',
+                          labelStyle: TextStyle(color: Colors.black),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      if (_selectedRole == 'Student' || _selectedRole == 'Class Advisor') ...[
+                        DropdownButtonFormField<String>(
+                          value: _selectedYear,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedYear = newValue;
+                            });
+                          },
+                          items: years.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            labelText: 'Year',
+                            labelStyle: TextStyle(color: Colors.black),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                      ],
+                      if (_selectedRole == 'Student' || _selectedRole == 'Class Advisor' || _selectedRole == 'HOD') ...[
+                        DropdownButtonFormField<String>(
+                          value: _selectedDepartment,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedDepartment = newValue;
+                            });
+                          },
+                          items: departments.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          decoration: InputDecoration(
+                            labelText: 'Department',
+                            labelStyle: TextStyle(color: Colors.black),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            try {
+                              UserCredential userCredential = await FirebaseAuth.instance
+                                  .createUserWithEmailAndPassword(
+                                email: emailController.text,
+                                password: passwordController.text,
+                              );
+
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(userCredential.user!.uid)
+                                  .set({
+                                'firstName': firstnameController.text,
+                                'lastName': lastnameController.text,
+                                'email': emailController.text,
+                                'sin': _selectedRole == 'Student' ? sinController.text : null, // Only store SIN for students
+                                'role': _selectedRole,
+                                'year': _selectedYear,
+                                'department': departmentShortForms[_selectedDepartment], // Store short form
+                              });
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Signup successful!')),
+                              );
+
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => LoginScreen()),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Signup failed: $e')),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromARGB(255, 255, 115, 92),
+                          minimumSize: Size(300, 50),
+                        ),
+                        child: Text(
+                          'SignUp',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+lib\screens\Login\login_screen.dart:
+
+import 'package:first_app/color/Colors.dart';
+import 'package:first_app/screens/home_screen.dart';
+import 'package:first_app/screens/Login/reset_screen.dart';
+import 'package:flutter/material.dart';
+import 'signup_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.clear();
+    passwordController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.primaryColor,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/login.png',
+                  height: 250,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'WELCOME TO THE SSCET OUTPASS APP',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  style: const TextStyle(color: Colors.white),
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    labelStyle: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  style: const TextStyle(color: Colors.white),
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    labelStyle: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                  obscureText: _obscurePassword,
+                ),
+                const SizedBox(height: 5),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>  ResetScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () => loginUser(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondaryColor,
+                    minimumSize: const Size(300, 50),
+                  ),
+                  child: Text(
+                    'Login',
+                    style: TextStyle(color: AppColors.primaryColor),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  spacing: 2,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'New User?',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SignupScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          color: AppColors.secondaryColor,
+                          fontWeight: FontWeight.bold
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void loginUser(BuildContext context) async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+
+        if (userDoc.exists) {
+          String role = userDoc['role'];
+
+          switch (role) {
+            case 'Student':
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              break;
+            case 'Class Advisor':
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              break;
+            case 'HOD':
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              break;
+            case 'Principal':
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              break;
+            case 'Security':
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              break;
+            default:
+              throw Exception('Unknown role: $role');
+          }
+        } else {
+          throw Exception('User data not found');
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: $e')),
+        );
+      }
+    }
+  }
+}
+
+lib\screens\Login\onboarding_screen.dart:
+import 'package:first_app/screens/Login/login_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:first_app/color/Colors.dart'; // Correct import path
+
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.primaryColor,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/onboarding.png',
+              height: 250,
+            ),
+            const SizedBox(height: 60),
+            const Text(
+              'Welcome to SSCET App!',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 255, 255, 255),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LoginScreen(), // Added const for optimization
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondaryColor, // Use AppColors for consistency
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'Get Started',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+lib\screens\Login\reset_screen.dart:
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+class ResetScreen extends StatefulWidget {
+  @override
+  State<ResetScreen> createState() => _ResetScreenState();
+}
+
+class _ResetScreenState extends State<ResetScreen> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController sinController = TextEditingController();
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _isStudent = false;
+
+  void _checkRoleAndResetPassword() async {
+    try {
+      // Fetch user details by email from Firestore
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: emailController.text)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User not found. Please enter a valid email.')),
+        );
+        return;
+      }
+
+      final userData = querySnapshot.docs.first.data();
+
+      // Check if the user is a student
+      setState(() {
+        _isStudent = userData['role'] == 'Student';
+      });
+
+      if (_isStudent && userData['sin'] != sinController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please Enter Your Correct SIN number')),
+        );
+        return;
+      }
+
+      // Send password reset email
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password reset email sent. Please check your inbox.')),
+      );
+
+      Navigator.pop(context); // Navigate back to the previous screen
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/reset.jpg',
+                  height: 200,
+                  width: 200,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'RESET PASSWORD',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20),
+                TextFormField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    labelStyle: TextStyle(color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
+                ),
+                if (_isStudent) ...[
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: sinController,
+                    decoration: InputDecoration(
+                      labelText: 'SIN Number',
+                      labelStyle: TextStyle(color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your SIN Number';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+                SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromARGB(255, 255, 115, 92),
+                  ),
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _checkRoleAndResetPassword();
+                    }
+                  },
+                  child: Text(
+                    'Reset Password',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+lib\screens\assignments\upload_screen.dart:
+
+import 'dart:convert';
+import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class UploadAssignmentScreen extends StatefulWidget {
+  @override
+  _UploadAssignmentScreenState createState() => _UploadAssignmentScreenState();
+}
+
+class _UploadAssignmentScreenState extends State<UploadAssignmentScreen> {
+  File? _selectedFile;
+  bool _isUploading = false;
+  String _fileUrl = "";
+
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  DateTime? _selectedDate;
+
+  final String githubRepo = "munnashaheem96/storage_sscet-app"; // Replace with your repo
+  final String githubToken = "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"; // Store securely
+  final String githubBranch = "main"; // Change if needed
+  final String githubPath = "uploads/"; // Folder in the repo
+
+  String? _selectedYear;
+  String? _selectedDepartment;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserDetails();
+  }
+
+  Future<void> _fetchUserDetails() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        final userData = doc.data();
+        setState(() {
+          _selectedYear = userData?['year'];
+          _selectedDepartment = userData?['department'];
+        });
+      }
+    }
+  }
+
+  Future<void> _pickDate() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (pickedDate != null) {
+      setState(() => _selectedDate = pickedDate);
+    }
+  }
+
+  Future<void> _pickFile() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() => _selectedFile = File(pickedFile.path));
+    }
+  }
+
+  Future<void> _uploadFileToGitHub() async {
+    if (_selectedFile == null || 
+        _titleController.text.isEmpty || 
+        _descriptionController.text.isEmpty || 
+        _selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all fields and select a file.")));
+      return;
+    }
+
+    setState(() => _isUploading = true);
+
+    try {
+      String fileName = _selectedFile!.path.split('/').last;
+      String githubFilePath = "$githubPath$fileName";
+
+      // Convert file to Base64
+      List<int> fileBytes = await _selectedFile!.readAsBytes();
+      String base64File = base64Encode(fileBytes);
+
+      // Commit message with assignment details
+      String commitMessage = "Upload: ${_titleController.text}, Year: $_selectedYear, Dept: $_selectedDepartment";
+
+      // GitHub API request
+      final url = Uri.parse("https://api.github.com/repos/$githubRepo/contents/$githubFilePath");
+      final response = await http.put(
+        url,
+        headers: {
+          "Authorization": "token $githubToken",
+          "Accept": "application/vnd.github.v3+json",
+        },
+        body: jsonEncode({
+          "message": commitMessage,
+          "content": base64File,
+          "branch": githubBranch,
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        String uploadedFileUrl = jsonResponse["content"]["html_url"];
+        
+        setState(() => _fileUrl = uploadedFileUrl);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("File uploaded successfully!")));
+
+        // Now store data to Firestore
+        await _storeDataToFirestore(uploadedFileUrl);
+      } else {
+        print(response.body);
+        throw Exception("GitHub upload failed: ${response.body}");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
+  Future<void> _storeDataToFirestore(String fileUrl) async {
+    try {
+      await FirebaseFirestore.instance.collection('assignments').add({
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'last_date': _selectedDate?.toIso8601String(),
+        'file_url': fileUrl,
+        'year': _selectedYear,
+        'department': _selectedDepartment,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Assignment data saved successfully!")));
+      _clearFields();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Firestore Error: $e")));
+    }
+  }
+
+  void _clearFields() {
+    _titleController.clear();
+    _descriptionController.clear();
+    setState(() {
+      _selectedFile = null;
+      _selectedDate = null;
+      _fileUrl = "";
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 20, 20, 20),
+      appBar: AppBar(
+        title: Text(
+          "Upload Assignments",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color.fromARGB(255, 20, 20, 20),
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Image.asset(
+                'assets/images/assignment.png',
+                width: 150,
+              ),
+              SizedBox(height: 20,),
+              Container(
+                decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(15)
+                ),
+                child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                  labelText: "Assignment Title",
+                  labelStyle: TextStyle(color: Colors.black),
+                  border: InputBorder.none
+                  ),
+                ),
+                ),
+              ),
+              SizedBox(height: 10,),
+              Container(
+                decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(15)
+                ),
+                child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                  border: InputBorder.none,
+                  labelText: "Description",
+                  labelStyle: TextStyle(color: Colors.black),
+                  ),
+                  maxLines: 5,
+                ),
+                ),
+              ),
+              SizedBox(height: 10,),
+              Container(
+                decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(15)
+                ),
+                child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: TextEditingController(
+                  text: _selectedDate == null ? "" : _selectedDate!.toLocal().toString().split(' ')[0],
+                  ),
+                  readOnly: true,
+                  decoration: InputDecoration(
+                  border: InputBorder.none,
+                  labelText: "Select Last Date",
+                  labelStyle: TextStyle(color: Colors.black),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.calendar_today),
+                    onPressed: _pickDate,
+                  ),
+                  ),
+                ),
+                ),
+              ),
+              SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(15)
+                ),
+                child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  readOnly: true,
+                  decoration: InputDecoration(
+                  border: InputBorder.none,
+                  labelText: "Selected File",
+                  labelStyle: TextStyle(color: Colors.black),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.attach_file),
+                    onPressed: _pickFile,
+                  ),
+                  ),
+                  controller: TextEditingController(
+                  text: _selectedFile == null ? "No file selected" : _selectedFile!.path.split('/').last,
+                  ),
+                ),
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black
+                ),
+                onPressed: _isUploading ? null : _uploadFileToGitHub,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  child: _isUploading ? CircularProgressIndicator(color: Colors.black,) : Text("Upload Assignment Topics"),
+                ),
+              ),
+              if (_fileUrl.isNotEmpty) Text("File uploaded: $_fileUrl"),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+lib\screens\assignments\view_assignments.dart:
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:first_app/screens/assignments/full_screen_image.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class ViewAssignmentsScreen extends StatelessWidget {
+  Future<Map<String, dynamic>?> _getUserDetails() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    return doc.data();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Assignments')),
+      body: FutureBuilder<Map<String, dynamic>?>(
+        future: _getUserDetails(),
+        builder: (context, userSnapshot) {
+          if (userSnapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (userSnapshot.hasError || userSnapshot.data == null) {
+            return Center(child: Text('Error loading user details.'));
+          }
+
+          final userData = userSnapshot.data!;
+          final String year = userData['year'];
+          final String department = userData['department'];
+
+          return StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('assignments')
+                .where('year', isEqualTo: year)
+                .where('department', isEqualTo: department)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError || !snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(child: Text('No assignments available.'));
+              }
+
+              final assignments = snapshot.data!.docs;
+
+              return ListView.builder(
+                itemCount: assignments.length,
+                itemBuilder: (context, index) {
+                  final assignmentData = assignments[index].data() as Map<String, dynamic>;
+
+                  return Card(
+                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (assignmentData['imageUrl'] != null)
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FullScreenImage(imageUrl: assignmentData['imageUrl']),
+                                ),
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                              child: Image.network(
+                                assignmentData['imageUrl'],
+                                height: 150,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(child: CircularProgressIndicator());
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Center(child: Icon(Icons.broken_image, size: 100, color: Colors.grey));
+                                },
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                assignmentData['title'] ?? 'No Title',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                "Last Date: ${assignmentData['last_date'] ?? 'N/A'}",
+                                style: TextStyle(fontSize: 14, color: Colors.redAccent),
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                assignmentData['description'] ?? 'No description provided',
+                                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ButtonBar(
+                          alignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.download),
+                              onPressed: () async {
+                                final url = assignmentData['file_url'];
+                                if (url != null && await canLaunchUrl(Uri.parse(url))) {
+                                  await launchUrl(Uri.parse(url));
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Could not open file.')),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+lib\screens\assignments\full_screen_image.dart:
+
+import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
+
+class FullScreenImage extends StatelessWidget {
+  final String imageUrl;
+
+  FullScreenImage({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+      ),
+      body: Center(
+        child: PhotoView(
+          imageProvider: NetworkImage(imageUrl),
+          backgroundDecoration: BoxDecoration(color: Colors.black),
+        ),
+      ),
+    );
+  }
+}
